@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use crate::tokenize::Tokenize;
 
+mod postings;
+
 /// An in-memory index for a single file.
 ///
 /// This index stores the indexed document in memory. For large document the index
@@ -9,7 +11,7 @@ use crate::tokenize::Tokenize;
 pub struct InMemoryFileIndex {
     /// The index of the words in the document. The key is the word, and the value is
     /// the frequency of the word in the document.
-    index: Vec<(String, usize)>,
+    pub index: Vec<(String, usize)>,
 }
 
 impl InMemoryFileIndex {
@@ -19,6 +21,11 @@ impl InMemoryFileIndex {
         self.index.iter().find_map(
             |(t, freq)| if t == token { Some(*freq) } else { None }
         )
+    }
+
+    /// Returns the number of tokens in the index.
+    pub fn count(&self) -> usize {
+        self.index.len()
     }
 }
 

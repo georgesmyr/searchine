@@ -36,7 +36,6 @@ impl Tokenize for SimpleTokenizer {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

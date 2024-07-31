@@ -1,3 +1,5 @@
+use rust_stemmers::{Algorithm, Stemmer};
+
 use crate::index::*;
 use crate::io::*;
 use crate::tokenize::*;
@@ -16,7 +18,12 @@ fn main() -> anyhow::Result<()> {
     let content = FileReader::read(XML_PATH)?;
     let indexer = FileIndexer::new(SimpleTokenizer);
     let index = indexer.index(content);
-    println!("{:?}", index.get("testing"));
+    let stemmer = Stemmer::create(Algorithm::English);
+    for (word, freq) in index.index {
+        let word_s = stemmer.stem(&word).to_string();
+        println!("{} -> {}: {}", word, word_s, freq);
+    }
+
 
     Ok(())
 }
