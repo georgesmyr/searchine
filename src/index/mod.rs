@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::tokenize::Tokenize;
 
-mod postings;
+pub mod postings;
 
 /// An in-memory index for a single file.
 ///
