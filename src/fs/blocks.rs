@@ -59,7 +59,6 @@ impl IntoIterator for Block {
 /// maximum block size.
 pub struct DocumentBlocks {
     blocks: Vec<Block>,
-    max_block_size: usize,
 }
 
 impl DocumentBlocks {
@@ -93,7 +92,7 @@ impl DocumentBlocks {
             let block = extract_block(&mut entries, max_block_size)?;
             blocks.push(block);
         }
-        Ok(Self { blocks, max_block_size })
+        Ok(Self { blocks })
     }
 }
 
@@ -123,7 +122,8 @@ impl DocumentBlocks {
 fn extract_block(entries: &mut Vec<DirEntry>, max_block_size: usize) -> io::Result<Block> {
     let mut block = Block::new();
     for idx in (0..entries.len()).rev() {
-        let entry_size = entries[idx].metadata()?.len();
+        let metadata = entries[idx].metadata()?;
+        let entry_size = metadata.len();
         if block.size + entry_size < max_block_size as u64 {
             block.add_entry(entries[idx].path(), entry_size);
             entries.remove(idx);

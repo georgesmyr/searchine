@@ -56,6 +56,24 @@ impl DocumentType {
 }
 pub struct Document;
 impl Document {
+    /// Reads the contents of a file and returns it as a string.
+    ///
+    /// This function determines the type of the file based on its path and reads its
+    /// contents accordingly. If the file type is unsupported, it returns an error.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - A path to the file to be read.
+    ///
+    /// # Returns
+    ///
+    /// * `std::io::Result<String>` - The contents of the file as a string, or an error
+    ///   if the file type is unsupported or if there is an I/O error.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the file type is unsupported or if there
+    /// is an I/O error.
     pub fn read_to_string(path: impl AsRef<Path>) -> std::io::Result<String> {
         match DocumentType::from_path(&path) {
             Some(DocumentType::Xml) => read_xml_file(path),
