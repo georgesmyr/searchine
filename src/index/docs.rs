@@ -1,9 +1,14 @@
 use std::collections::HashMap;
+use std::fs::{File, DirEntry};
 use std::path::{Path, PathBuf};
+use std::io::{self, BufWriter, BufReader};
 
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
 pub struct DocumentIndex {
-    pub index: HashMap<PathBuf, usize>,
-    pub next_id: usize,
+    pub(crate) index: HashMap<PathBuf, usize>,
+    next_id: usize,
 }
 
 
@@ -11,6 +16,15 @@ impl DocumentIndex {
     /// Creates an empty `DocumentIndex`.
     pub fn new() -> Self {
         Self { index: HashMap::new(), next_id: 0 }
+    }
+
+    /// Creates a new `DocumentIndex` from a list of paths.
+    pub fn from_paths(entries: Vec<PathBuf>) -> Self {
+        let mut index = Self::new();
+        for entry in entries {
+            index.insert(entry.clone());
+        }
+        index
     }
 
     /// Adds a document to the index, and assigns it a unique ID.
@@ -26,8 +40,40 @@ impl DocumentIndex {
         self.index.get(document_path)
     }
 
-    /// Write it to a disk.
-    pub fn write_to_disk(&self, path: impl AsRef<Path>) -> std::io::Result<()> {
-        todo!()
+    /// Write the document index to a disk.
+    pub fn write_to_disk(&self, path: impl AsRef<Path>) -> io::Result<()> {
+        let path = path.as_ref();
+        let file = File::create(path)?;
+        let writer = BufWriter::new(file);
+        serde_json::to_writer(writer, self)?;
+        Ok(())
+    }
+
+    /// Load the document index from a disk.
+    pub fn load_from_disk(path: impl AsRef<Path>) -> io::Result<Self> {
+        let path = path.as_ref();
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let index: DocumentIndex = serde_json::from_reader(reader)?;
+        Ok(index)
     }
 }
+
+impl IntoIterator for DocumentIndex {
+    type Item = (PathBuf, usize);
+    type IntoIter = std::collections::hash_map::IntoIter<PathBuf, usize>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.index.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a DocumentIndex {
+    type Item = (&'a PathBuf, &'a usize);
+    type IntoIter = std::collections::hash_map::Iter<'a, PathBuf, usize>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.index.iter()
+    }
+}
+
