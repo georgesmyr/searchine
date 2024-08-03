@@ -1,18 +1,18 @@
 use std::collections::HashMap;
-use std::fs::{File, DirEntry};
+use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::io::{self, BufWriter, BufReader};
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct DocumentIndex {
+pub struct CorpusIndex {
     pub(crate) index: HashMap<PathBuf, usize>,
     next_id: usize,
 }
 
 
-impl DocumentIndex {
+impl CorpusIndex {
     /// Creates an empty `DocumentIndex`.
     pub fn new() -> Self {
         Self { index: HashMap::new(), next_id: 0 }
@@ -54,12 +54,12 @@ impl DocumentIndex {
         let path = path.as_ref();
         let file = File::open(path)?;
         let reader = BufReader::new(file);
-        let index: DocumentIndex = serde_json::from_reader(reader)?;
+        let index: CorpusIndex = serde_json::from_reader(reader)?;
         Ok(index)
     }
 }
 
-impl IntoIterator for DocumentIndex {
+impl IntoIterator for CorpusIndex {
     type Item = (PathBuf, usize);
     type IntoIter = std::collections::hash_map::IntoIter<PathBuf, usize>;
 
@@ -68,7 +68,7 @@ impl IntoIterator for DocumentIndex {
     }
 }
 
-impl<'a> IntoIterator for &'a DocumentIndex {
+impl<'a> IntoIterator for &'a CorpusIndex {
     type Item = (&'a PathBuf, &'a usize);
     type IntoIter = std::collections::hash_map::Iter<'a, PathBuf, usize>;
 
