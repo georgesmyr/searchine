@@ -45,12 +45,12 @@ impl DocumentIndex {
         let path = path.as_ref();
         let file = File::create(path)?;
         let writer = BufWriter::new(file);
-        serde_json::to_writer(writer, self)?;
+        serde_json::to_writer_pretty(writer, self)?;
         Ok(())
     }
 
     /// Load the document index from a disk.
-    pub fn load_from_disk(path: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn read_from_disk(path: impl AsRef<Path>) -> io::Result<Self> {
         let path = path.as_ref();
         let file = File::open(path)?;
         let reader = BufReader::new(file);
