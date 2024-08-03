@@ -140,3 +140,12 @@ impl IntoIterator for DocumentBlocks {
         self.blocks.into_iter()
     }
 }
+
+impl<'a> IntoIterator for &'a DocumentBlocks {
+    type Item = &'a Block;
+    type IntoIter = std::slice::Iter<'a, Block>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.blocks.iter()
+    }
+}
