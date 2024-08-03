@@ -31,3 +31,7 @@ Searchine will be a search engine from your CLI!
 - [ ] Proximity
 - [ ] Wildcards
 - [ ] Ranking
+
+### Index Status
+
+- [ ] Document Index with SHA1 of each document content
