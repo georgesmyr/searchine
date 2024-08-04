@@ -1,5 +1,6 @@
 use crate::postings::*;
 use crate::types::Tokens;
+use crate::scores::tf;
 use std::collections::{HashMap, HashSet};
 
 pub type InMemoryIndex<T> = HashMap<String, InMemoryDocumentIndex<T>>;
@@ -83,12 +84,13 @@ impl<T: Posting> InMemoryInvertedIndexer<T> {
 /// assert_eq!(index.get("hello").unwrap().term_frequency(), 2);
 /// assert_eq!(index.get("world").unwrap().term_frequency(), 1);
 /// ```
+#[derive(Debug, Clone, PartialEq)]
 pub struct InMemoryDocumentIndex<T> {
     doc_id: usize,
     index: HashMap<String, T>,
 }
 
-impl<T> InMemoryDocumentIndex<T> {
+impl<T: Posting> InMemoryDocumentIndex<T> {
     /// Returns the length of the index, i.e. the number of terms.
     pub fn len(&self) -> usize {
         self.index.len()
@@ -102,6 +104,22 @@ impl<T> InMemoryDocumentIndex<T> {
     /// Returns a shared reference to the posting of a term.
     pub fn get(&self, term: &str) -> Option<&T> {
         self.index.get(term)
+    }
+
+    /// Counts the number of occurrences of a term in the document.
+    pub fn term_count(&self, term: &str) -> usize {
+        if let Some(posting) = self.get(term) {
+            posting.term_count()
+        } else {
+            0
+        }
+    }
+
+    /// Calculates the term frequency score of a term in the document.
+    pub fn score_tf(&self, term: &str) -> f64 {
+        let term_count = self.term_count(term);
+        let total_terms = self.len();
+        tf(term_count, total_terms)
     }
 }
 
