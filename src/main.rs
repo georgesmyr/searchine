@@ -11,6 +11,7 @@ mod tokenize;
 mod types;
 mod vocab;
 mod postings;
+mod scores;
 
 const XML_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glVertexAttribDivisor.xhtml";
 const XML_PATH_2: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glActiveShaderProgram.xhtml";
@@ -40,11 +41,11 @@ fn main() -> anyhow::Result<()> {
     let mut index = InMemoryDocumentIndexer::<FrequencyPosting>::new(0);
     index.index_tokens(tokens);
     let index = index.finalize();
-    let mut iter = index.into_iter().collect::<Vec<_>>();
+    let mut iter = index.clone().into_iter().collect::<Vec<_>>();
     iter.sort_by_key(|(_, f)| (*f).term_count());
     iter.reverse();
     for (t, f) in iter {
-        println!("{} -> {:?}", t, f.term_count());
+        println!("{} -> {} -> {}", t, f.term_count(), index.score_tf(t.as_str()));
     }
 
 
