@@ -1,5 +1,7 @@
 pub use simple::SimpleTokenizer;
 
+pub type Tokens = Vec<String>;
+
 pub mod simple;
 /// Trait defining a tokenizer that converts text into a vector of tokens.
 ///
