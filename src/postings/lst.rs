@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::postings::Posting;
+use std::collections::HashMap;
 
 /// A list of postings for a specific term. Each posting in the list
 /// corresponds to a document in which the term appears.
@@ -34,7 +34,11 @@ pub struct PostingsList<T> {
 
 impl<T: Posting> PostingsList<T> {
     /// Creates a new, empty list of postings.
-    pub fn new() -> Self { Self { postings: HashMap::new() } }
+    pub fn new() -> Self {
+        Self {
+            postings: HashMap::new(),
+        }
+    }
 
     /// Inserts a posting into the postings list.
     pub fn insert(&mut self, posting: T) {
@@ -53,7 +57,6 @@ impl<T: Posting> PostingsList<T> {
         self.postings.get(&doc_id)
     }
 }
-
 
 impl<'a, T> IntoIterator for &'a PostingsList<T> {
     type Item = (&'a usize, &'a T);

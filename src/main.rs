@@ -1,53 +1,47 @@
 use crate::fs::*;
-use crate::postings::*;
-use crate::postings::Posting;
 use crate::index::spimi::*;
+use crate::postings::Posting;
+use crate::postings::*;
 use crate::tokenize::*;
 use crate::vocab::Vocabulary;
 
 mod fs;
 mod index;
-mod tokenize;
-mod types;
-mod vocab;
 mod postings;
 mod scores;
+mod tokenize;
+mod vocab;
 
-const XML_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glVertexAttribDivisor.xhtml";
-const XML_PATH_2: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glActiveShaderProgram.xhtml";
-// const TEXT_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/readme.md";
-// const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
+const XML_PATH: &str =
+    "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glVertexAttribDivisor.xhtml";
+const XML_PATH_2: &str =
+    "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glActiveShaderProgram.xhtml";
+const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
 
 fn main() -> anyhow::Result<()> {
-    // let content = Document::read_to_string("/Users/georgesmyridis/Desktop/Projects/searchine/src/file1.txt")?;
-    // let content2 = Document::read_to_string("/Users/georgesmyridis/Desktop/Projects/searchine/src/file2.txt")?;
-    // let tokenizer = SimpleTokenizer::new();
-    // let tokens = tokenizer.tokenize(&content);
-    // let tokens2 = tokenizer.tokenize(&content2);
-    //
-    // let mut vocab = Vocabulary::new();
-    // for token in (&tokens).into_iter().chain((&tokens2).into_iter()) {
-    //     vocab.add_token(token);
-    // }
-    //
-    // for (token, token_id) in vocab.token_to_id {
-    //     println!("{} -> {}", token, token_id);
-    // }
-
-    // Index the documents in each block
-    let content = Document::read_to_string(XML_PATH)?;
     let tokenizer = SimpleTokenizer::new();
-    let tokens = tokenizer.tokenize(&content);
-    let mut index = InMemoryDocumentIndexer::<FrequencyPosting>::new(0);
-    index.index_tokens(tokens);
-    let index = index.finalize();
-    let mut iter = index.clone().into_iter().collect::<Vec<_>>();
-    iter.sort_by_key(|(_, f)| (*f).term_count());
-    iter.reverse();
-    for (t, f) in iter {
-        println!("{} -> {} -> {}", t, f.term_count(), index.score_tf(t.as_str()));
+    let mut gindex_hm = std::collections::HashMap::<usize, InMemoryDocumentIndex<FrequencyPosting>>::new();
+
+    let dir = std::fs::read_dir(DIR_PATH)?;
+    for (i, direntry) in dir.enumerate().take(2) {
+        let path = direntry?.path();
+        println!("Indexing document: {}", path.display());
+        let content = Document::read_to_string(&path)?;
+        let tokens = tokenizer.tokenize(&content);
+        let mut indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(i);
+        indexer.index_tokens(tokens);
+        let index = indexer.finalize();
+        gindex_hm.insert(i, index);
     }
 
+    let gindex = InMemoryIndex { index: gindex_hm };
+
+    for (id, doc_idx) in &gindex.index {
+        println!("Document ID: {}", id);
+        for (word, _) in doc_idx.clone().into_iter() {
+            println!("    {} -> {}", word, gindex.score_tf_idf(*id, &word));
+        }
+    }
 
     // let content2 = Document::read_to_string("/Users/georgesmyridis/Desktop/Projects/searchine/src/file2.txt")?;
     // let tokens2 = tokenizer.tokenize(&content2);

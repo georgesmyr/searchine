@@ -15,7 +15,6 @@ pub trait Posting {
     fn term_count(&self) -> usize;
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

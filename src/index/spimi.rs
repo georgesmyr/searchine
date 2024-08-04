@@ -1,61 +1,41 @@
 use crate::postings::*;
-use crate::types::Tokens;
-use crate::scores::tf;
+use crate::scores::*;
+use crate::tokenize::Tokens;
 use std::collections::{HashMap, HashSet};
 
-pub type InMemoryIndex<T> = HashMap<String, InMemoryDocumentIndex<T>>;
-
-pub struct InMemoryInvertedIndex<T> {
-    pub index: HashMap<String, PostingsList<T>>,
+pub struct InMemoryIndex<T> {
+    pub index: HashMap<usize, InMemoryDocumentIndex<T>>,
 }
 
-impl<T: Posting> InMemoryInvertedIndex<T> {
-    pub fn get_score(&self, doc_id: usize, term: &str) -> f64 {
-        // Calculate the number of occurrences in the document.
-        let tf = self.get_frequency(doc_id, term) as f64;
-        // Calculate the number of occurrences in all documents.
-        let itf = self.get_freq_all(term) as f64;
-        tf / itf
+impl<T: Posting> InMemoryIndex<T> {
+    /// Returns the number of documents in the index that contain a
+    /// specified term.
+    pub fn n_docs_containing(&self, term: &str) -> usize {
+        self.index
+            .values()
+            .filter(|&index| index.contains(term))
+            .count()
     }
 
-    pub fn get_frequency(&self, doc_id: usize, term: &str) -> usize {
-        self.index.get(term).unwrap().get(doc_id).unwrap().term_count()
+    /// Returns the number of documents in the index.
+    pub fn n_docs(&self) -> usize {
+        self.index.len()
     }
 
-    pub fn get_freq_all(&self, term: &str) -> usize {
-        let posting_list = self.index.get(term).unwrap();
-        (&posting_list)
-            .into_iter()
-            .fold(0, |acc, (_, posting)| acc + posting.term_count())
+    /// Calculates the inverse document frequency of a term.
+    pub fn calc_idf(&self, term: &str) -> f64 {
+        idf(self.n_docs_containing(term), self.n_docs())
     }
-}
 
-
-pub struct InMemoryInvertedIndexer<T> {
-    index: HashMap<String, PostingsList<T>>,
-}
-
-impl<T: Posting> InMemoryInvertedIndexer<T> {
-    /// Creates a new in-memory indexer for a corpus of documents.
-    pub fn new() -> Self { Self { index: HashMap::new() } }
-
-    /// Adds an in-memory document index to the corpus index.
-    pub fn add_document_index(&mut self, index: InMemoryDocumentIndex<T>) {
-        for (term, posting) in index {
-            if let Some(postings_list) = self.index.get_mut(&term) {
-                postings_list.insert(posting);
-            } else {
-                let mut posting_list = PostingsList::new();
-                posting_list.insert(posting);
-                self.index.insert(term, posting_list);
-            }
+    /// Calculate the TF-IDF score of a term in a document.
+    pub fn score_tf_idf(&self, doc_id: usize, term: &str) -> f64 {
+        if let Some(doc_index) = self.index.get(&doc_id) {
+            let tf = doc_index.term_frequency(term);
+            let idf = self.calc_idf(term);
+            tf_idf(tf, idf)
+        } else {
+            0.0
         }
-    }
-
-    /// Finalizes the indexing returning the in-memory index, consuming
-    /// the indexer.
-    pub fn finalize(self) -> InMemoryInvertedIndex<T> {
-        InMemoryInvertedIndex { index: self.index }
     }
 }
 
@@ -80,7 +60,7 @@ impl<T: Posting> InMemoryInvertedIndexer<T> {
 /// ]));
 ///
 /// assert_eq!(index.doc_id(), 0);
-/// assert_eq!(index.len(), 2);
+/// assert_eq!(index.n_terms(), 2);
 /// assert_eq!(index.get("hello").unwrap().term_frequency(), 2);
 /// assert_eq!(index.get("world").unwrap().term_frequency(), 1);
 /// ```
@@ -91,14 +71,14 @@ pub struct InMemoryDocumentIndex<T> {
 }
 
 impl<T: Posting> InMemoryDocumentIndex<T> {
-    /// Returns the length of the index, i.e. the number of terms.
-    pub fn len(&self) -> usize {
-        self.index.len()
-    }
-
     /// Returns the document ID of the index.
     pub fn doc_id(&self) -> usize {
         self.doc_id
+    }
+
+    /// Returns True if the index contains a term. Otherwise, False.
+    pub fn contains(&self, term: &str) -> bool {
+        self.index.contains_key(term)
     }
 
     /// Returns a shared reference to the posting of a term.
@@ -106,7 +86,12 @@ impl<T: Posting> InMemoryDocumentIndex<T> {
         self.index.get(term)
     }
 
-    /// Counts the number of occurrences of a term in the document.
+    /// Returns the length of the index, i.e. the number of terms.
+    pub fn n_terms(&self) -> usize {
+        self.index.len()
+    }
+
+    /// Returns the number of occurrences of a term in the document.
     pub fn term_count(&self, term: &str) -> usize {
         if let Some(posting) = self.get(term) {
             posting.term_count()
@@ -115,11 +100,9 @@ impl<T: Posting> InMemoryDocumentIndex<T> {
         }
     }
 
-    /// Calculates the term frequency score of a term in the document.
-    pub fn score_tf(&self, term: &str) -> f64 {
-        let term_count = self.term_count(term);
-        let total_terms = self.len();
-        tf(term_count, total_terms)
+    /// Returns the term frequency of a term in the document.
+    pub fn term_frequency(&self, term: &str) -> f64 {
+        tf(self.term_count(term), self.index.len())
     }
 }
 
@@ -247,7 +230,7 @@ mod tests {
             "world".to_string(),
         ]);
         let index = indexer.finalize();
-        assert_eq!(index.len(), 2);
+        assert_eq!(index.n_terms(), 2);
         assert_eq!(index.get("hello").unwrap().term_count(), 3);
         assert_eq!(index.get("world").unwrap().term_count(), 3);
     }
@@ -264,7 +247,7 @@ mod tests {
             "world".to_string(),
         ]);
         let index = indexer.finalize();
-        assert_eq!(index.len(), 2);
+        assert_eq!(index.n_terms(), 2);
         assert_eq!(
             index.get("hello").unwrap().term_positions(),
             &HashSet::from([0, 2, 4])

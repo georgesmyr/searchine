@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use crate::postings::Posting;
+use std::collections::HashSet;
 
 /// A posting for a term in a document, containing the document ID and the
 /// positions of the term in the document.
