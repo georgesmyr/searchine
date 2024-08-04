@@ -15,7 +15,10 @@ pub struct Block {
 impl Block {
     /// Creates new empty block of documents.
     pub fn new() -> Self {
-        Self { entries: Vec::new(), size: 0 }
+        Self {
+            entries: Vec::new(),
+            size: 0,
+        }
     }
 
     /// Returns the total size of the block in bytes.
@@ -50,7 +53,6 @@ impl IntoIterator for Block {
         self.entries.into_iter()
     }
 }
-
 
 /// A collection of blocks of documents.
 ///

@@ -18,9 +18,3 @@ pub trait Tokenize {
     /// A vector of tokens of type `String`.
     fn tokenize(&self, text: impl AsRef<str>) -> Vec<String>;
 }
-
-pub type Tokens = Vec<String>;
-
-
-
-

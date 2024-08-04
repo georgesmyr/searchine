@@ -1,4 +1,5 @@
 use crate::tokenize::*;
+use crate::types::Tokens;
 
 /// A simple text tokenizer that splits text into tokens by non-alphanumeric characters.
 pub struct SimpleTokenizer;

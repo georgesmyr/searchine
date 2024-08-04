@@ -106,21 +106,33 @@ fn read_text_file(path: impl AsRef<Path>) -> std::io::Result<String> {
     Ok(contents)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_file_type_from_extension() {
-        assert_eq!(DocumentType::from_extension(OsStr::new("xhtml")), Some(DocumentType::Xml));
-        assert_eq!(DocumentType::from_extension(OsStr::new("txt")), Some(DocumentType::Text));
-        assert_eq!(DocumentType::from_extension(OsStr::new("md")), Some(DocumentType::Text));
-        assert_eq!(DocumentType::from_extension(OsStr::new("html")), Some(DocumentType::Html));
-        assert_eq!(DocumentType::from_extension(OsStr::new("pdf")), Some(DocumentType::Pdf));
+        assert_eq!(
+            DocumentType::from_extension(OsStr::new("xhtml")),
+            Some(DocumentType::Xml)
+        );
+        assert_eq!(
+            DocumentType::from_extension(OsStr::new("txt")),
+            Some(DocumentType::Text)
+        );
+        assert_eq!(
+            DocumentType::from_extension(OsStr::new("md")),
+            Some(DocumentType::Text)
+        );
+        assert_eq!(
+            DocumentType::from_extension(OsStr::new("html")),
+            Some(DocumentType::Html)
+        );
+        assert_eq!(
+            DocumentType::from_extension(OsStr::new("pdf")),
+            Some(DocumentType::Pdf)
+        );
         assert_eq!(DocumentType::from_extension(OsStr::new("")), None);
         assert_eq!(DocumentType::from_extension(OsStr::new("jpg")), None);
     }
 }
-
-

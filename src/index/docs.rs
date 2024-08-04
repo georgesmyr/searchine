@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
+use std::io::{self, BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use std::io::{self, BufWriter, BufReader};
 
 use serde::{Deserialize, Serialize};
 
@@ -11,11 +11,13 @@ pub struct CorpusIndex {
     next_id: usize,
 }
 
-
 impl CorpusIndex {
     /// Creates an empty `DocumentIndex`.
     pub fn new() -> Self {
-        Self { index: HashMap::new(), next_id: 0 }
+        Self {
+            index: HashMap::new(),
+            next_id: 0,
+        }
     }
 
     /// Creates a new `DocumentIndex` from a list of paths.
@@ -76,4 +78,3 @@ impl<'a> IntoIterator for &'a CorpusIndex {
         self.index.iter()
     }
 }
-
