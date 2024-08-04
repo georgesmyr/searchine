@@ -26,7 +26,7 @@ use crate::postings::Posting;
 /// assert_eq!(postings.get(1).unwrap().term_frequency(), 3);
 /// assert_eq!(postings.get(2).unwrap().term_frequency(), 1);
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PostingsList<T> {
     /// HashMap of postings `T` with the document ID as the key.
     postings: HashMap<usize, T>,

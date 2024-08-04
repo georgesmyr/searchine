@@ -18,7 +18,7 @@ use crate::postings::Posting;
 /// assert_eq!(postings.term_positions(), &HashMap::from([2, 3]));
 /// assert_eq!(postings.term_count(), 2);
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PositionsPosting {
     doc_id: usize,
     term_pos: HashSet<usize>,

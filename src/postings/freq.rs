@@ -16,7 +16,7 @@ use crate::postings::Posting;
 /// assert_eq!(postings.doc_id(), 1);
 /// assert_eq!(postings.term_count(), 2);
 /// ```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FrequencyPosting {
     doc_id: usize,
     term_count: usize,
