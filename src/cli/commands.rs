@@ -3,6 +3,22 @@ use std::path::Path;
 
 use crate::tokenize::{Builder, Vocabulary};
 
+/// Initializes a new searchine index.
+pub fn init(path: impl AsRef<Path>) -> io::Result<()> {
+    let path = path.as_ref();
+    let index_path = path.join(".searchine");
+    if index_path.exists() {
+        let full_index_path = std::fs::canonicalize(&index_path)?;
+        println!("Index already exists at: {}", full_index_path.display());
+    } else {
+        std::fs::create_dir_all(&index_path)?;
+        let full_index_path = std::fs::canonicalize(&index_path)?;
+        println!("Index created at: {}", full_index_path.display());
+    }
+
+    Ok(())
+}
+
 /// Creates a vocabulary from a directory of documents.
 pub fn create_vocab(path: impl AsRef<Path>, output_path: impl AsRef<Path>) -> io::Result<()> {
     // Read the directory and create a tokenizer.

@@ -14,6 +14,11 @@ pub struct SearchineCli {
 
 #[derive(clap::Subcommand)]
 pub enum Commands {
+    Init {
+        /// Path to the directory to initialize as a searchine index.
+        #[clap(short, long)]
+        path: String,
+    },
     CreateVocabulary {
         /// Path to the directory containing the documents.
         #[clap(short, long)]
@@ -21,5 +26,5 @@ pub enum Commands {
         /// Path to the output vocabulary file.
         #[clap(short, long)]
         output: String,
-    }
+    },
 }

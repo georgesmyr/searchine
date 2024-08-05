@@ -23,6 +23,9 @@ fn main() -> anyhow::Result<()> {
     let args = SearchineCli::parse();
 
     match args.command {
+        Commands::Init { path } => {
+            commands::init(path)?;
+        }
         Commands::CreateVocabulary {
             path,
             output: output_path,
