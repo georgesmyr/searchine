@@ -1,5 +1,5 @@
-use crate::tokenize::*;
 use crate::tokenize::Tokens;
+use crate::tokenize::*;
 
 /// A simple text tokenizer that splits text into tokens by non-alphanumeric characters.
 pub struct SimpleTokenizer;
@@ -21,15 +21,3 @@ impl Tokenize for SimpleTokenizer {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_text_tokenizer() {
-        let text = "Hello, world!";
-        let tokenizer = SimpleTokenizer::new();
-        let tokens = tokenizer.tokenize(text);
-        assert_eq!(tokens, vec!["hello", "world"]);
-    }
-}

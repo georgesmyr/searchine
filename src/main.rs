@@ -1,16 +1,17 @@
+use crate::cli::{commands, Commands, SearchineCli};
 use crate::fs::*;
 use crate::index::spimi::*;
 use crate::postings::Posting;
 use crate::postings::*;
 use crate::tokenize::*;
-use crate::vocab::Vocabulary;
+use clap::Parser;
 
+mod cli;
 mod fs;
 mod index;
 mod postings;
 mod scores;
 mod tokenize;
-mod vocab;
 
 const XML_PATH: &str =
     "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glVertexAttribDivisor.xhtml";
@@ -19,28 +20,16 @@ const XML_PATH_2: &str =
 const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
 
 fn main() -> anyhow::Result<()> {
-    let tokenizer = SimpleTokenizer::new();
-    let mut gindex_hm = std::collections::HashMap::<usize, InMemoryDocumentIndex<FrequencyPosting>>::new();
+    let args = SearchineCli::parse();
 
-    let dir = std::fs::read_dir(DIR_PATH)?;
-    for (i, direntry) in dir.enumerate().take(2) {
-        let path = direntry?.path();
-        println!("Indexing document: {}", path.display());
-        let content = Document::read_to_string(&path)?;
-        let tokens = tokenizer.tokenize(&content);
-        let mut indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(i);
-        indexer.index_tokens(tokens);
-        let index = indexer.finalize();
-        gindex_hm.insert(i, index);
-    }
-
-    let gindex = InMemoryIndex { index: gindex_hm };
-
-    for (id, doc_idx) in &gindex.index {
-        println!("Document ID: {}", id);
-        for (word, _) in doc_idx.clone().into_iter() {
-            println!("    {} -> {}", word, gindex.score_tf_idf(*id, &word));
+    match args.command {
+        Commands::CreateVocabulary {
+            path,
+            output: output_path,
+        } => {
+            commands::create_vocab(path, output_path)?;
         }
+        _ => {}
     }
 
     // let content2 = Document::read_to_string("/Users/georgesmyridis/Desktop/Projects/searchine/src/file2.txt")?;

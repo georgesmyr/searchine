@@ -39,7 +39,6 @@ impl<T: Posting> InMemoryIndex<T> {
     }
 }
 
-
 /// A struct representing an in-memory document index.
 ///
 /// This struct is used to store the postings of a single document.
