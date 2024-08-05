@@ -1,14 +1,13 @@
 use std::io;
 use std::path::Path;
 
-use crate::tokenize::{SimpleTokenizer, Tokenize};
-use crate::tokenize::Vocabulary;
+use crate::tokenize::{Builder, Vocabulary};
 
 /// Creates a vocabulary from a directory of documents.
 pub fn create_vocab(path: impl AsRef<Path>, output_path: impl AsRef<Path>) -> io::Result<()> {
     // Read the directory and create a tokenizer.
     let dir = std::fs::read_dir(path.as_ref())?;
-    let tokenizer = SimpleTokenizer::new();
+    let tokenizer = Builder::default().build();
     let mut vocab = Vocabulary::new();
 
     // For each directory entry, read the file and tokenize the content.
