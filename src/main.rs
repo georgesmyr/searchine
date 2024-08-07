@@ -1,17 +1,16 @@
 use crate::cli::{commands, Commands, SearchineCli};
-use crate::fs::*;
-use crate::index::spimi::*;
 use crate::postings::Posting;
 use crate::postings::*;
-use crate::tokenize::*;
 use clap::Parser;
 
-mod cli;
 mod fs;
-mod index;
-mod postings;
-mod scores;
+mod path;
+mod cli;
 mod tokenize;
+mod postings;
+mod index;
+mod scores;
+
 
 const XML_PATH: &str =
     "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glVertexAttribDivisor.xhtml";
@@ -19,45 +18,49 @@ const XML_PATH_2: &str =
     "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glActiveShaderProgram.xhtml";
 const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
 
+const SEARCHINE_PATH: &str = ".searchine";
+const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";
+const VOCABULARY_FILENAME: &str = "vocabulary.json";
+
+
 fn main() -> anyhow::Result<()> {
     let args = SearchineCli::parse();
 
     match args.command {
         Commands::Init { path } => {
-            commands::init(path)?;
+            commands::init(path, SEARCHINE_PATH)?;
+        }
+        Commands::IndexCorpus { dir_path } => {
+            if !commands::repo_exists(&dir_path, SEARCHINE_PATH) {
+                eprintln!("Searchine index not found at: {}", dir_path);
+                return Ok(());
+            }
+            commands::index_corpus(dir_path, SEARCHINE_PATH, CORPUS_INDEX_FILENAME)?;
+        }
+        Commands::ListCorpus { dir_path } => {
+            if !commands::repo_exists(&dir_path, SEARCHINE_PATH) {
+                eprintln!("Searchine index not found at: {}", dir_path);
+                return Ok(());
+            }
+            commands::list_corpus(dir_path, SEARCHINE_PATH, CORPUS_INDEX_FILENAME)?;
         }
         Commands::CreateVocabulary {
             path,
             output: output_path,
         } => {
-            commands::create_vocab(path, output_path)?;
+            if !commands::repo_exists(&path, SEARCHINE_PATH) {
+                eprintln!("Searchine index not found at: {}", path);
+                return Ok(());
+            }
+            commands::create_vocabulary(path, SEARCHINE_PATH, VOCABULARY_FILENAME)?;
         }
-        _ => {}
+        Commands::Index { path } => {
+            if !commands::repo_exists(&path, SEARCHINE_PATH) {
+                eprintln!("Searchine index not found at: {}", path);
+                return Ok(());
+            }
+        }
     }
-
-    // let content2 = Document::read_to_string("/Users/georgesmyridis/Desktop/Projects/searchine/src/file2.txt")?;
-    // let tokens2 = tokenizer.tokenize(&content2);
-    // let mut index2 = InMemoryDocumentIndexer::<FrequencyPosting>::new(1);
-    // index2.index_tokens(tokens2);
-    // let index2 = index2.finalize();
-    //
-    // let mut index_all = InMemoryIndex::new();
-    // index_all.add_document_index(index);
-    // index_all.add_document_index(index2);
-    //
-    // for (work, posting) in &index_all.index {
-    //     println!("{} -> {:?}", work, posting);
-    // }
-    //
-    // println!("{:?}", index_all.get_frequency(0, "world"));
-    // println!("{:?}", index_all.get_frequency(0, "world"));
-    // println!("{:?}", index_all.get_freq_all("world"));
-    // println!("{:?}", index_all.get_score(0, "world"));
-
-    // let index = index::docs::DocumentIndex::read_from_disk("index.json")?;
-    // for (path, id) in index.index.iter() {
-    //     println!("{} -> {}", path.display(), id);
-    // }
 
     // Create blocks of documents
     // let dir = std::fs::read_dir(DIR_PATH)?;
@@ -68,10 +71,5 @@ fn main() -> anyhow::Result<()> {
     //     println!("Block size: {}", block.size());
     // }
 
-    // let stemmer = Stemmer::create(Algorithm::English);
-    // for (word, freq) in index.index {
-    //     let word_s = stemmer.stem(&word).to_string();
-    //     println!("{} -> {}: {}", word, word_s, freq);
-    // }
     Ok(())
 }
