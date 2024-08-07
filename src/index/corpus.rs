@@ -24,10 +24,14 @@ impl CorpusIndexEntry {
     }
 }
 
-
+/// A struct representing a corpus index, which also serves as cache.
+///
+/// This struct is used to build an in-memory index for multiple documents.
+/// Each document is assigned a unique document ID, and the last time the
+/// document was indexed.
 #[derive(Serialize, Deserialize)]
 pub struct CorpusIndex {
-    pub(crate) index: HashMap<PathBuf, CorpusIndexEntry>,
+    index: HashMap<PathBuf, CorpusIndexEntry>,
     next_id: usize,
 }
 
@@ -86,7 +90,7 @@ impl CorpusIndex {
     }
 
     /// Write the document index to a disk.
-    pub fn write_to_disk(&self, path: impl AsRef<Path>) -> io::Result<()> {
+    pub fn write_to_file(&self, path: impl AsRef<Path>) -> io::Result<()> {
         let path = path.as_ref();
         let file = File::create(path)?;
         let writer = BufWriter::new(file);
@@ -95,7 +99,7 @@ impl CorpusIndex {
     }
 
     /// Load the document index from a disk.
-    pub fn read_from_disk(path: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
         let path = path.as_ref();
         let file = File::open(path)?;
         let reader = BufReader::new(file);

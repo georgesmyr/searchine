@@ -16,8 +16,13 @@ pub struct SearchineCli {
 pub enum Commands {
     Init {
         /// Path to the directory to initialize as a searchine index.
-        #[clap(short, long)]
         path: String,
+    },
+    IndexCorpus {
+        dir_path: String,
+    },
+    ListCorpus {
+        dir_path: String,
     },
     CreateVocabulary {
         /// Path to the directory containing the documents.
@@ -26,5 +31,8 @@ pub enum Commands {
         /// Path to the output vocabulary file.
         #[clap(short, long)]
         output: String,
+    },
+    Index {
+        path: String,
     },
 }

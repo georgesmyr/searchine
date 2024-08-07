@@ -1,5 +1,5 @@
 pub mod vocab;
-pub type Tokens = Vec<String>;
+pub type TokenIds = Vec<usize>;
 
 use rust_stemmers::{Algorithm, Stemmer};
 use serde::{Deserialize, Serialize};

@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::path::Path;
+use std::io;
 use serde::{Deserialize, Serialize};
 
 /// A vocabulary that maps tokens to IDs and vice versa.
@@ -31,11 +32,11 @@ impl Vocabulary {
     }
 
     /// Reads a vocabulary from disk.
-    pub fn read_from_disk(path: impl AsRef<Path>) -> Self {
-        let file = File::open(path).expect("Failed to open file");
+    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
+        let file = File::open(path)?;
         let token_to_id = serde_json::from_reader(file).
             expect("Failed to read vocabulary from disk");
-        Self { token_to_id }
+        Ok(Self { token_to_id })
     }
 
     /// Adds a token to the vocabulary.

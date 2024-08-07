@@ -1,7 +1,6 @@
 use crate::postings::*;
 use crate::scores::*;
-use crate::tokenize::TokenIds;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub struct InMemoryIndex<T> {
     pub index: HashMap<usize, InMemoryDocumentIndex<T>>,

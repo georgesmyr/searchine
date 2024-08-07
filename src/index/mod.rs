@@ -1,2 +1,2 @@
-pub mod docs;
-pub mod spimi;
+pub mod corpus;
+pub mod im;
