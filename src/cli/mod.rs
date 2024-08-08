@@ -25,12 +25,7 @@ pub enum Commands {
         dir_path: String,
     },
     CreateVocabulary {
-        /// Path to the directory containing the documents.
-        #[clap(short, long)]
         path: String,
-        /// Path to the output vocabulary file.
-        #[clap(short, long)]
-        output: String,
     },
     Index {
         path: String,

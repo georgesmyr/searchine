@@ -1,83 +1,11 @@
-use crate::postings::*;
-use crate::scores::*;
+use crate::postings::{FrequencyPosting, PositionsPosting, Posting};
 use std::collections::HashMap;
-
-pub struct InMemoryIndex<T> {
-    pub index: HashMap<usize, InMemoryDocumentIndex<T>>,
-}
-
-impl<T: Posting> InMemoryIndex<T> {
-    /// Returns the number of documents in the index that contain a
-    /// specified term.
-    pub fn n_docs_containing(&self, term: &usize) -> usize {
-        self.index
-            .values()
-            .filter(|&index| index.contains(term))
-            .count()
-    }
-
-    /// Returns the number of documents in the index.
-    pub fn n_docs(&self) -> usize {
-        self.index.len()
-    }
-
-    /// Calculates the inverse document frequency of a term.
-    pub fn calc_idf(&self, term: &usize) -> f64 {
-        idf(self.n_docs_containing(term), self.n_docs())
-    }
-
-    /// Calculate the TF-IDF score of a term in a document.
-    pub fn score_tf_idf(&self, doc_id: usize, term: &usize) -> f64 {
-        if let Some(doc_index) = self.index.get(&doc_id) {
-            let tf = doc_index.term_frequency(term);
-            let idf = self.calc_idf(term);
-            tf_idf(tf, idf)
-        } else {
-            0.0
-        }
-    }
-}
-
-/// A struct representing an in-memory indexer.
-///
-/// This struct is used to build an in-memory index for multiple documents.
-/// The index is stored in memory and can be finalized to an `InMemoryIndex`.
-///
-/// # Type Parameters
-///
-/// - `T`: The type of the postings list to be stored in the index.
-pub struct InMemoryIndexer<T> {
-    index: HashMap<usize, InMemoryDocumentIndex<T>>,
-}
-
-impl<T> InMemoryIndexer<T> {
-    /// Creates a new in-memory indexer.
-    pub fn new() -> Self {
-        Self {
-            index: HashMap::new(),
-        }
-    }
-
-    /// Inserts a document index into the in-memory indexer.
-    ///
-    /// # Arguments
-    ///
-    /// * `doc_id` - The ID of the document.
-    /// * `doc_index` - The in-memory document index to be inserted.
-    pub fn insert(&mut self, doc_id: usize, doc_index: InMemoryDocumentIndex<T>) {
-        self.index.insert(doc_id, doc_index);
-    }
-
-    /// Finalizes the indexing process, consuming the indexer and returning
-    /// an `InMemoryIndex`.
-    pub fn finalize(self) -> InMemoryIndex<T> {
-        InMemoryIndex { index: self.index }
-    }
-}
 
 /// A struct representing an in-memory document index.
 ///
-/// This struct is used to store the postings of a single document.
+/// This struct is used to store the postings of a single document, i.e.
+/// for the same document, each term in the document  is associated with
+/// a posting.
 ///
 /// # Type Parameters
 ///
@@ -87,7 +15,7 @@ impl<T> InMemoryIndexer<T> {
 ///
 /// ```
 /// use crate::index::postings::{FrequencyPosting, Posting};
-/// use crate::index::spimi::InMemoryDocumentIndex;
+/// use crate::index::im::InMemoryDocumentIndex;
 ///
 /// let index = InMemoryDocumentIndex::new(0, HashMap::from([
 ///     ("hello".to_string(), FrequencyPosting::new(0, 2)),
@@ -133,11 +61,6 @@ impl<T: Posting> InMemoryDocumentIndex<T> {
         } else {
             0
         }
-    }
-
-    /// Returns the term frequency of a term in the document.
-    pub fn term_frequency(&self, term: &usize) -> f64 {
-        tf(self.term_count(term), self.index.len())
     }
 }
 
@@ -247,49 +170,3 @@ impl InMemoryDocumentIndexer<PositionsPosting> {
         }
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use std::collections::HashSet;
-//
-//     #[test]
-//     fn test_in_memory_index() {
-//         let mut indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(0);
-//         indexer.index_tokens(vec![
-//             "hello".to_string(),
-//             "world".to_string(),
-//             "hello".to_string(),
-//             "world".to_string(),
-//             "hello".to_string(),
-//             "world".to_string(),
-//         ]);
-//         let index = indexer.finalize();
-//         assert_eq!(index.n_terms(), 2);
-//         assert_eq!(index.get("hello").unwrap().term_count(), 3);
-//         assert_eq!(index.get("world").unwrap().term_count(), 3);
-//     }
-//
-//     #[test]
-//     fn test_in_memory_index_positions() {
-//         let mut indexer = InMemoryDocumentIndexer::<PositionsPosting>::new(0);
-//         indexer.index_tokens(vec![
-//             "hello".to_string(),
-//             "world".to_string(),
-//             "hello".to_string(),
-//             "world".to_string(),
-//             "hello".to_string(),
-//             "world".to_string(),
-//         ]);
-//         let index = indexer.finalize();
-//         assert_eq!(index.n_terms(), 2);
-//         assert_eq!(
-//             index.get("hello").unwrap().term_positions(),
-//             &HashSet::from([0, 2, 4])
-//         );
-//         assert_eq!(
-//             index.get("world").unwrap().term_positions(),
-//             &HashSet::from([1, 3, 5])
-//         );
-//     }
-// }

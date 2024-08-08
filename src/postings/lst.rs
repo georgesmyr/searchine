@@ -40,6 +40,15 @@ impl<T: Posting> PostingsList<T> {
         }
     }
 
+    /// Returns the number of postings in the list.
+    pub fn len(&self) -> usize {
+        self.postings.len()
+    }
+
+    pub fn keys(&self) -> std::collections::hash_map::Keys<usize, T> {
+        self.postings.keys()
+    }
+
     /// Inserts a posting into the postings list.
     pub fn insert(&mut self, posting: T) {
         self.postings.insert(posting.doc_id(), posting);

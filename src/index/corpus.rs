@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use std::fs::{DirEntry, File};
+use std::fs::File;
 use std::io::{self, BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
+use walkdir::DirEntry;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -57,7 +58,7 @@ impl TryFrom<Vec<DirEntry>> for CorpusIndex {
 impl CorpusIndex {
     /// Adds a document to the index, and assigns it a unique ID.
     fn insert(&mut self, dir_entry: DirEntry) -> io::Result<()> {
-        let document_path = dir_entry.path();
+        let document_path = dir_entry.path().to_path_buf();
         if !self.index.contains_key(&document_path) {
             let modified = dir_entry.metadata()?.modified()?;
             let entry = CorpusIndexEntry::new(self.next_id, modified);

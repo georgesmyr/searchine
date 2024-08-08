@@ -1,11 +1,13 @@
 use std::path::{Path, PathBuf, StripPrefixError};
+use std::cmp::Ordering;
+use std::ffi::OsStr;
 
 /// Checks if a directory is contained in a directory with specified name.
 /// If it is, returns the path to the repo. Otherwise, returns `None`.
 ///
 /// # Arguments
 ///
-/// * `from_path` - The path which is checked to be contained in the repo.
+/// * `path` - The path which is checked to be contained in the repo.
 /// * `repo_path` - The path to the `.searchine` directory.
 ///
 /// # Examples
@@ -19,17 +21,21 @@ use std::path::{Path, PathBuf, StripPrefixError};
 ///
 /// assert_eq!(get_repo_path(dir_path, target_dir), Some(repo_path));
 /// ```
-pub fn get_repo_path(from_path: impl AsRef<Path>, repo_path: impl AsRef<Path>) -> Option<PathBuf> {
-    let mut current_path = from_path.as_ref();
-
-    while let Some(parent) = current_path.parent() {
-        if current_path.ends_with(&repo_path) {
-            return Some(current_path.to_path_buf());
+pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -> Option<PathBuf> {
+    let path = crate::fs::canonicalize(path)?;
+    let mut path = path.as_path();
+    if dir_contains(&path, &repo_dir_name) {
+        return Some(path.join(repo_dir_name));
+    }
+    while let Some(parent) = path.parent() {
+        path = parent;
+        if dir_contains(&path, &repo_dir_name) {
+            return Some(path.join(repo_dir_name));
         }
-        current_path = parent;
     }
     None
 }
+
 
 /// Returns the relative path of `path` relative to `base_path`.
 ///
@@ -64,25 +70,71 @@ pub fn get_relative_path(
     }
 }
 
+/// Checks if a directory contains a file or directory with the specified name.
+fn dir_contains(dir: impl AsRef<Path>, name: impl AsRef<Path>) -> bool {
+    dir.as_ref().join(name).exists()
+}
+
+
+/// Compares the base name of two entries.
+///
+/// This function compares the base name of two entries, taking into account
+/// their modes. It returns an `Ordering` value that indicates the relative
+/// order of the entries.
+///
+/// # Arguments
+///
+/// * `name1` - The base name of the first entry.
+/// * `name2` - The base name of the second entry.
+/// * `is_dir1` - The mode of the first entry.
+/// * `is_dir2` - The mode of the second entry.
+///
+/// # Returns
+///
+/// An `Ordering` value indicating the relative order of the entries.
+pub fn compare_base_name(
+    name1: &OsStr,
+    name2: &OsStr,
+    is_dir1: bool,
+    is_dir2: bool,
+) -> Ordering {
+    let name1 = name1.as_encoded_bytes();
+    let name2 = name2.as_encoded_bytes();
+    let common_len = std::cmp::min(name1.len(), name2.len());
+
+    match name1[..common_len].cmp(&name2[..common_len]) {
+        Ordering::Equal => {}
+        ord => return ord,
+    }
+
+    // If we are past the match expression, then the names are the same up to their common length.
+    // If the lengths are the same, then the names are the same.
+    if name1.len() == name2.len() {
+        return Ordering::Equal;
+    }
+
+    // Check if we have reached the end of the name. If not, get the next character.
+    // Otherwise, if the entry is a directory add the '/' character for the sake of comparing.
+    // If the entry is not a directory, then we have reached the end of the name.
+    fn get_next_char(name: &[u8], is_dir: bool, len: usize) -> Option<u8> {
+        if let Some(c) = name.get(len).copied() {
+            Some(c)
+        } else {
+            if is_dir {
+                Some(b'/')
+            } else {
+                None
+            }
+        }
+    }
+    let c1 = get_next_char(&name1, is_dir1, common_len);
+    let c2 = get_next_char(&name2, is_dir2, common_len);
+    c1.cmp(&c2)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_get_repo_path() {
-        let target_dir = "target_dir";
-        let positive_path = Path::new("/Users/some_user/target_dir/some_dir/");
-        let negative_path = Path::new("/Users/some_user/some_dir/");
-        let expected_path = Path::new("/Users/some_user/target_dir/").to_path_buf();
-        assert_eq!(
-            get_repo_path(positive_path, target_dir),
-            Some(expected_path.clone())
-        );
-        assert_ne!(
-            get_repo_path(negative_path, target_dir),
-            Some(expected_path)
-        );
-    }
 
     #[test]
     fn test_get_relative_path() {
