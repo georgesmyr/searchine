@@ -54,13 +54,15 @@ pub fn get_repo_path(from_path: impl AsRef<Path>, repo_path: impl AsRef<Path>) -
 /// let expected_path = PathBuf::from("some_dir/");
 /// assert_eq!(get_relative_path(path, base_path), Ok(expected_path));
 /// ```
-pub fn get_relative_path(path: impl AsRef<Path>, base_path: impl AsRef<Path>) -> Result<PathBuf, StripPrefixError> {
+pub fn get_relative_path(
+    path: impl AsRef<Path>,
+    base_path: impl AsRef<Path>,
+) -> Result<PathBuf, StripPrefixError> {
     match path.as_ref().strip_prefix(base_path) {
         Ok(path) => Ok(path.to_path_buf()),
         Err(e) => Err(e),
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -72,8 +74,14 @@ mod tests {
         let positive_path = Path::new("/Users/some_user/target_dir/some_dir/");
         let negative_path = Path::new("/Users/some_user/some_dir/");
         let expected_path = Path::new("/Users/some_user/target_dir/").to_path_buf();
-        assert_eq!(get_repo_path(positive_path, target_dir), Some(expected_path.clone()));
-        assert_ne!(get_repo_path(negative_path, target_dir), Some(expected_path));
+        assert_eq!(
+            get_repo_path(positive_path, target_dir),
+            Some(expected_path.clone())
+        );
+        assert_ne!(
+            get_repo_path(negative_path, target_dir),
+            Some(expected_path)
+        );
     }
 
     #[test]

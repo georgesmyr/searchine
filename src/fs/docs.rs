@@ -4,7 +4,7 @@ use std::path::Path;
 use xml::reader::{EventReader, XmlEvent};
 
 #[derive(Debug, PartialEq)]
-enum DocumentType {
+pub enum DocumentType {
     Xml,
     Text,
     Html,
@@ -24,7 +24,7 @@ impl DocumentType {
     /// let file_type = DocumentType::from_extension(ext);
     /// assert_eq!(file_type, Some(FileType::Text));
     /// ```
-    fn from_extension(ext: &OsStr) -> Option<Self> {
+    pub fn from_extension(ext: &OsStr) -> Option<Self> {
         match ext.to_str().unwrap() {
             "xhtml" => Some(Self::Xml),
             "txt" | "md" => Some(Self::Text),

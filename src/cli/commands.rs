@@ -1,10 +1,9 @@
+use crate::index::corpus::CorpusIndex;
+use crate::index::im::{InMemoryDocumentIndexer, InMemoryIndexer};
+use crate::postings::FrequencyPosting;
+use crate::tokenize::{Builder, Encoder, Vocabulary};
 use std::io;
 use std::path::Path;
-use crate::tokenize::{Builder, Vocabulary, Encoder};
-use crate::index::corpus::CorpusIndex;
-use crate::index::im::{InMemoryIndexer, InMemoryDocumentIndexer};
-use crate::postings::FrequencyPosting;
-
 
 /// Initializes a new searchine index repo.
 ///
@@ -60,7 +59,11 @@ pub fn repo_exists(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>)
 /// * `dir_path` - The path to the directory containing the corpus.
 /// * `searchine_path` - The path to the searchine index directory relative to `dir_path`.
 /// * `corpus_index_file_name` - The name of the file where the corpus index will be written.
-pub fn index_corpus(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>, corpus_index_file_name: impl AsRef<Path>) -> io::Result<()> {
+pub fn index_corpus(
+    dir_path: impl AsRef<Path>,
+    searchine_path: impl AsRef<Path>,
+    corpus_index_file_name: impl AsRef<Path>,
+) -> io::Result<()> {
     let dir_path = dir_path.as_ref();
     let output_path = dir_path.join(searchine_path).join(corpus_index_file_name);
 
@@ -79,13 +82,22 @@ pub fn index_corpus(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>
 }
 
 /// Lists the ...
-pub fn list_corpus(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>, corpus_index_file_name: impl AsRef<Path>) -> io::Result<()> {
+pub fn list_corpus(
+    dir_path: impl AsRef<Path>,
+    searchine_path: impl AsRef<Path>,
+    corpus_index_file_name: impl AsRef<Path>,
+) -> io::Result<()> {
     let dir = std::fs::read_dir(dir_path.as_ref())?;
     let dir = dir.collect::<Result<Vec<_>, _>>()?;
     let corpus_index = CorpusIndex::try_from(dir)?;
     let corpus_index = corpus_index.into_iter().collect::<Vec<_>>();
     for (path, entry) in corpus_index {
-        println!("{} : {} : {:?}", path.display(), entry.document_id, entry.modified);
+        println!(
+            "{} : {} : {:?}",
+            path.display(),
+            entry.document_id,
+            entry.modified
+        );
     }
     Ok(())
 }
@@ -106,7 +118,11 @@ pub fn list_corpus(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>,
 ///
 /// * `dir_path` - The path to the directory containing the documents.
 /// * `output_path` - The path to the output file where the vocabulary will be written.
-pub fn create_vocabulary(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>, vocabulary_file_name: impl AsRef<Path>) -> io::Result<()> {
+pub fn create_vocabulary(
+    dir_path: impl AsRef<Path>,
+    searchine_path: impl AsRef<Path>,
+    vocabulary_file_name: impl AsRef<Path>,
+) -> io::Result<()> {
     // Read the directory and create a tokenizer.
     let dir = std::fs::read_dir(dir_path.as_ref())?;
     let tokenizer = Builder::default().build();
@@ -123,7 +139,10 @@ pub fn create_vocabulary(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<
     }
 
     // Write the vocabulary to the output file.
-    let output_path = dir_path.as_ref().join(searchine_path).join(vocabulary_file_name);
+    let output_path = dir_path
+        .as_ref()
+        .join(searchine_path)
+        .join(vocabulary_file_name);
     vocab.write_to_disk(&output_path);
     Ok(())
 }
@@ -150,7 +169,11 @@ pub fn index(dir_path: impl AsRef<Path>, output_path: impl AsRef<Path>) -> io::R
 
     let index = indexer.finalize();
     for (doc_id, doc_index) in index.index {
-        println!("Document ID: {} -> Index Length: {}", doc_id, doc_index.n_terms());
+        println!(
+            "Document ID: {} -> Index Length: {}",
+            doc_id,
+            doc_index.n_terms()
+        );
     }
     // index.write_to_disk("index.json")?;
     Ok(())

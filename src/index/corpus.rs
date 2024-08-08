@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use std::fs::{File, DirEntry};
+use std::fs::{DirEntry, File};
 use std::io::{self, BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CorpusIndexEntry {
@@ -67,7 +66,6 @@ impl CorpusIndex {
         }
         Ok(())
     }
-
 
     /// Returns the document id for a given path. If the path is not found
     /// in the index, `None` is returned.

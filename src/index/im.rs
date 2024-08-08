@@ -38,7 +38,6 @@ impl<T: Posting> InMemoryIndex<T> {
     }
 }
 
-
 /// A struct representing an in-memory indexer.
 ///
 /// This struct is used to build an in-memory index for multiple documents.
@@ -72,12 +71,9 @@ impl<T> InMemoryIndexer<T> {
     /// Finalizes the indexing process, consuming the indexer and returning
     /// an `InMemoryIndex`.
     pub fn finalize(self) -> InMemoryIndex<T> {
-        InMemoryIndex {
-            index: self.index,
-        }
+        InMemoryIndex { index: self.index }
     }
 }
-
 
 /// A struct representing an in-memory document index.
 ///

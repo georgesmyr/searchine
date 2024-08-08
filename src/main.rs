@@ -3,14 +3,13 @@ use crate::postings::Posting;
 use crate::postings::*;
 use clap::Parser;
 
-mod fs;
-mod path;
 mod cli;
-mod tokenize;
-mod postings;
+mod fs;
 mod index;
+mod path;
+mod postings;
 mod scores;
-
+mod tokenize;
 
 const XML_PATH: &str =
     "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/glVertexAttribDivisor.xhtml";
@@ -21,7 +20,6 @@ const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
 const SEARCHINE_PATH: &str = ".searchine";
 const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";
 const VOCABULARY_FILENAME: &str = "vocabulary.json";
-
 
 fn main() -> anyhow::Result<()> {
     let args = SearchineCli::parse();
