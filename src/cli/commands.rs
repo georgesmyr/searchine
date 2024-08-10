@@ -9,7 +9,6 @@ use rayon::prelude::*;
 use crate::fs::Directory;
 use crate::index::corpus::CorpusIndex;
 use crate::index::im::{InMemoryDocumentIndexer, InMemoryIndex};
-use crate::postings::FrequencyPosting;
 use crate::tokenize::{Builder, Encoder, Vocabulary};
 
 /// Initializes a new searchine index repo.
@@ -136,7 +135,7 @@ pub fn create_vocabulary(
     let dir = Directory::new(base_dir)?;
     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
     dir.par_iter().for_each(|path| {
-        let content = crate::fs::docs::read_to_string(&path).unwrap();
+        let content = crate::fs::read_to_string(&path).unwrap();
         let tokens = tokenizer.tokenize(&content);
         let mut vocab = vocab.lock().unwrap();
         vocab.add_tokens(&tokens);
@@ -150,6 +149,7 @@ pub fn create_vocabulary(
     Ok(())
 }
 
+/// Indexes the documents in the corpus.
 pub fn index(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();
     let vocab_path = repo_dir.join("vocabulary.json");
@@ -162,17 +162,38 @@ pub fn index(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::Re
     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
     let corpus_index = CorpusIndex::from_paths(dir)?;
 
-    let mut index = InMemoryIndex::<FrequencyPosting>::new();
+    let mut index = InMemoryIndex::new();
     for (path, _) in &corpus_index {
-        let content = crate::fs::docs::read_to_string(&path).unwrap();
+        let content = crate::fs::read_to_string(&path).unwrap();
         let tokens = tokenizer.tokenize(&content);
         let document_id = corpus_index.get_document_id(&path).unwrap();
-        let mut doc_indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(document_id);
+        let mut doc_indexer = InMemoryDocumentIndexer::new(document_id);
         doc_indexer.index_tokens(tokens);
         let doc_index = doc_indexer.finalize();
-        index.insert(doc_index);
+        println!("Indexed doc: {:?}", doc_index);
+        index.insert(document_id, doc_index);
     };
 
-    // index.write_to_disk(repo_dir.join(index_name));
+    index.write_to_disk(repo_dir.join(index_name));
+    Ok(())
+}
+
+pub fn find(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> io::Result<()> {
+    let repo_dir = repo_dir.as_ref();
+
+    // let corpus_index_path = repo_dir.join("corpus-index.json");
+    // let corpus_index = CorpusIndex::from_file(corpus_index_path)?;
+
+    let vocabulary_path = repo_dir.join("vocabulary.json");
+    let vocabulary = Vocabulary::from_file(vocabulary_path)?;
+    let encoder = Encoder::from(vocabulary);
+    let tokenizer = Builder::default().with_encoder(encoder).build();
+    let query_tokens = tokenizer.tokenize(query);
+    println!("Query tokens: {:?}", query_tokens);
+
+    // let index_path = repo_dir.join("index.json");
+    // let index = InMemoryIndex::<FrequencyPosting>::from_file(index_path)?;
+
+
     Ok(())
 }

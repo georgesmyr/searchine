@@ -1,4 +1,3 @@
-pub mod blocks;
 pub mod dir;
 pub mod docs;
 

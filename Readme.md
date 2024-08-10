@@ -8,15 +8,15 @@ Searchine will be a search engine from your CLI!
 
 - [ ] Tokenization
 - [ ] Stop words
-- [ ] Stemming
-- [ ] Case folding
+- [x] Stemming
+- [x] Case folding
 - [ ] Synonyms
 - [ ] Spelling mistakes
 
 ### Inverted index & Postings
 
-- [ ] Vocabulary
-- [ ] Postings
+- [x] Vocabulary
+- [x] Postings
 - [ ] Vectors vs Singly linked lists for postings
 - [ ] Postings: doc_id and term_freq as usize or u32?
 
@@ -35,3 +35,9 @@ Searchine will be a search engine from your CLI!
 ### Index Status
 
 - [ ] Document Index with SHA1 of each document content
+
+### Optimizations
+
+- [ ] Compress files
+- [ ] Use memory mapped files
+- [ ] Parse XMLs faster (quick-xml?)

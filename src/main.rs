@@ -1,19 +1,16 @@
-use crate::cli::{commands, Commands, SearchineCli};
-use crate::path::find_repo_path;
-use crate::postings::Posting;
-use crate::postings::*;
 use clap::Parser;
 use walkdir;
+
+use crate::cli::{commands, Commands, SearchineCli};
+use crate::path::find_repo_path;
 
 mod cli;
 mod fs;
 mod index;
 mod path;
-mod postings;
 mod scores;
 mod tokenize;
 
-const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
 
 const SEARCHINE_PATH: &str = ".searchine";
 const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";
@@ -76,12 +73,16 @@ fn main() -> anyhow::Result<()> {
                 eprintln!("Index does not exist at: {}", dir_path);
             }
         }
-        // Commands::Find { dir_path, query, top_n} => {
-        //     let dir_path = dir_path.unwrap_or(".".to_string());
-        //     if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-        //         if !repo_path.join(INDEX_FILENAME)
-        //     }
-        // }
+        Commands::Find { dir_path, query, top_n } => {
+            let dir_path = dir_path.unwrap_or(".".to_string());
+            if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
+                if !repo_path.join(INDEX_FILENAME).exists() {
+                    let _ = commands::index(&repo_path, INDEX_FILENAME);
+                }
+                let top_n = top_n.unwrap_or(10);
+                commands::find(repo_path, &query, top_n)?;
+            }
+        }
         _ => {}
     }
 
