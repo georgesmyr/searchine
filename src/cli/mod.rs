@@ -14,20 +14,9 @@ pub struct SearchineCli {
 
 #[derive(clap::Subcommand)]
 pub enum Commands {
-    Init {
-        /// Path to the directory to initialize as a searchine index.
-        path: String,
-    },
-    IndexCorpus {
-        dir_path: String,
-    },
-    ListCorpus {
-        dir_path: String,
-    },
-    CreateVocabulary {
-        path: String,
-    },
-    Index {
-        path: String,
-    },
+    Init { dir_path: Option<String> },
+    IndexCorpus { dir_path: Option<String> },
+    ListCorpus { dir_path: Option<String> },
+    CreateVocabulary { dir_path: Option<String> },
+    Index { dir_path: Option<String> },
 }

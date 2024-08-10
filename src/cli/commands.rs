@@ -1,11 +1,13 @@
+use std::collections::BTreeSet;
+use std::io;
+use std::path::Path;
+
+use crate::fs::Directory;
 use crate::index::corpus::CorpusIndex;
 use crate::index::im::{InMemoryDocumentIndexer, InMemoryIndex};
 use crate::path::get_relative_path;
 use crate::postings::FrequencyPosting;
 use crate::tokenize::{Builder, Encoder, Vocabulary};
-
-use std::io;
-use std::path::Path;
 
 /// Initializes a new searchine index repo.
 ///
@@ -16,15 +18,9 @@ use std::path::Path;
 pub fn init(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>) -> io::Result<()> {
     let dir_path = dir_path.as_ref();
     let index_path = dir_path.join(searchine_path);
-
-    if index_path.exists() {
-        let full_index_path = std::fs::canonicalize(&index_path)?;
-        println!("Index already exists at: {}", full_index_path.display());
-    } else {
-        std::fs::create_dir_all(&index_path)?;
-        let full_index_path = std::fs::canonicalize(&index_path)?;
-        println!("Index created at: {}", full_index_path.display());
-    }
+    std::fs::create_dir_all(&index_path)?;
+    let full_index_path = std::fs::canonicalize(&index_path)?;
+    println!("Index created at: {}", full_index_path.display());
     Ok(())
 }
 
@@ -46,14 +42,15 @@ pub fn index_corpus(
     corpus_index_file_name: impl AsRef<Path>,
 ) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();
-    let output_path = repo_dir.join(corpus_index_file_name);
+    let dir_path = repo_dir.parent().expect("Could not derive directory path.");
 
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x81]).unwrap_or_default();
     println!("{} Indexing corpus at: {}", emoji, repo_dir.display());
 
-    let dir = crate::fs::read_dir(repo_dir.parent().unwrap());
-    let corpus_index = CorpusIndex::try_from(dir)?;
-    corpus_index.write_to_file(output_path)?;
+    let dir = Directory::new(dir_path)?;
+    let paths = dir.iter_full_paths().collect::<BTreeSet<_>>();
+    let corpus_index = CorpusIndex::from_paths(paths)?;
+    corpus_index.write_to_file(repo_dir.join(corpus_index_file_name))?;
     Ok(())
 }
 
@@ -68,18 +65,19 @@ pub fn list_docs(
 
     let mut corpus_index = CorpusIndex::from_file(index_path)?
         .into_iter()
-        .collect::<Vec<_>>();
+        .collect::<BTreeSet<_>>();
 
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x9A]).unwrap_or_default();
-    println!("Searchine corpus index for : {}", base_path.display());
-
-    println!("{} Documents in the corpus: {:?}", emoji, corpus_index.len());
+    println!(
+        "{} Documents in the corpus: {:?}",
+        emoji,
+        corpus_index.len()
+    );
     for (path, entry) in corpus_index {
-        let rel_path = get_relative_path(&path, &base_path).unwrap();
         println!(
             "{} {} : {} : {:?}",
             emoji,
-            rel_path.display(),
+            path.display(),
             entry.document_id,
             entry.modified
         );
@@ -107,23 +105,24 @@ pub fn create_vocabulary(
     // For each directory entry, read the file and tokenize the content.
     // Add the tokens to the vocabulary.
     let repo_dir = repo_dir.as_ref();
-    let base_path = repo_dir.parent().unwrap();
-    let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x9D]).unwrap_or_default();
-    println!("Creating vocabulary from: {}", base_path.display());
-    let dir = crate::fs::read_dir(base_path);
-    for dir_entry in dir {
-        let path = dir_entry.path();
-        let rel_path = get_relative_path(&path, &base_path).unwrap();
+    let base_dir = repo_dir.parent().unwrap_or_else(|| {
+        panic!("Could not find parent directory of repo path: {}", repo_dir.display());
+    });
+    println!("Creating vocabulary from: {}\n", base_dir.display());
+    let dir = Directory::new(base_dir)?;
+    let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
+    for path in dir {
+        let rel_path = get_relative_path(&path, &base_dir).unwrap();
         println!("- Parsing document: {}", rel_path.display());
 
-        let content = std::fs::read_to_string(&path)?;
+        let content = crate::fs::docs::read_to_string(&path)?;
         let tokens = tokenizer.tokenize(&content);
         vocab.add_tokens(&tokens);
     }
 
     // Write the vocabulary to the output file.
     let output_path = repo_dir.join(vocabulary_file_name);
-    println!("Writing vocabulary to: {}", output_path.display());
+    println!("\nWriting vocabulary to: {}", output_path.display());
     vocab.write_to_disk(output_path);
     Ok(())
 }

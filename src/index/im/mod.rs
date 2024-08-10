@@ -1,8 +1,8 @@
 pub mod doc;
 
-use std::collections::{BTreeSet, HashMap};
 use crate::postings::*;
 pub use doc::{InMemoryDocumentIndex, InMemoryDocumentIndexer};
+use std::collections::{BTreeSet, HashMap};
 
 /// An in-memory index for multiple documents. The index is a HashMap
 /// with the document ID as the key and an in-memory document index as
@@ -50,7 +50,6 @@ impl<T: Posting> InMemoryIndex<T> {
         self.index.len()
     }
 }
-
 
 /// An in-memory inverted index. The inverted index is a HashMap with
 /// the term ID as the key and a postings list as the value.
@@ -100,4 +99,3 @@ impl<T: Posting> InMemoryInvertedIndex<T> {
         docs.len()
     }
 }
-

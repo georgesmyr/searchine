@@ -1,8 +1,9 @@
 use crate::cli::{commands, Commands, SearchineCli};
+use crate::path::find_repo_path;
 use crate::postings::Posting;
 use crate::postings::*;
-use crate::path::find_repo_path;
 use clap::Parser;
+use walkdir;
 
 mod cli;
 mod fs;
@@ -22,37 +23,44 @@ fn main() -> anyhow::Result<()> {
     let args = SearchineCli::parse();
 
     match args.command {
-        Commands::Init { path } => {
-            if let Some(repo_path) = find_repo_path(&path, SEARCHINE_PATH) {
-                println!("Index already exists at: {}", repo_path.display());
+        Commands::Init { dir_path } => {
+            let dir_path = dir_path.unwrap_or(".".to_string());
+            if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
+                eprintln!("searchine repo already exists at: {}", repo_path.display());
                 return Ok(());
             }
-            commands::init(path, SEARCHINE_PATH)?;
+            commands::init(dir_path, SEARCHINE_PATH)?;
         }
         Commands::IndexCorpus { dir_path } => {
+            let dir_path = dir_path.unwrap_or(".".to_string());
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 commands::index_corpus(repo_path, CORPUS_INDEX_FILENAME)?;
             } else {
-                println!("Index does not exist at: {}", dir_path);
+                eprintln!("Index does not exist at: {}", dir_path);
             }
         }
         Commands::ListCorpus { dir_path } => {
+            let dir_path = dir_path.unwrap_or(".".to_string());
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                commands::list_docs(repo_path, CORPUS_INDEX_FILENAME)?;
+                if repo_path.join(CORPUS_INDEX_FILENAME).exists() {
+                    commands::list_docs(repo_path, CORPUS_INDEX_FILENAME)?;
+                } else {
+                    eprintln!("Corpus index does not exist at: {}", dir_path);
+                    eprintln!("Run `searchine index-corpus` to create the corpus index.");
+                }
             } else {
-                println!("Index does not exist at: {}", dir_path);
+                eprintln!("Index does not exist at: {}", dir_path);
             }
         }
-        Commands::CreateVocabulary {
-            path,
-        } => {
-            if let Some(repo_path) = find_repo_path(&path, SEARCHINE_PATH) {
+        Commands::CreateVocabulary { dir_path } => {
+            let dir_path = dir_path.unwrap_or(".".to_string());
+            if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 commands::create_vocabulary(repo_path, VOCABULARY_FILENAME)?;
             } else {
-                println!("Index does not exist at: {}", path);
+                eprintln!("Index does not exist at: {}", dir_path);
             }
         }
-        // Commands::Index { path } => {}
+        // // Commands::Index { path } => {}
         _ => {}
     }
 

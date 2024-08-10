@@ -1,0 +1,33 @@
+{
+  "index": {
+    "/Users/georgesmyridis/Desktop/Projects/searchine/temp/file1.txt": {
+      "document_id": 0,
+      "modified": {
+        "secs_since_epoch": 1723245363,
+        "nanos_since_epoch": 112056365
+      }
+    },
+    "/Users/georgesmyridis/Desktop/Projects/searchine/temp/file2.txt": {
+      "document_id": 1,
+      "modified": {
+        "secs_since_epoch": 1723245370,
+        "nanos_since_epoch": 89648243
+      }
+    },
+    "/Users/georgesmyridis/Desktop/Projects/searchine/temp/some_dir/file4.txt": {
+      "document_id": 3,
+      "modified": {
+        "secs_since_epoch": 1723245415,
+        "nanos_since_epoch": 383700815
+      }
+    },
+    "/Users/georgesmyridis/Desktop/Projects/searchine/temp/some_dir/file3.txt": {
+      "document_id": 2,
+      "modified": {
+        "secs_since_epoch": 1723245399,
+        "nanos_since_epoch": 713249955
+      }
+    }
+  },
+  "next_id": 4
+}

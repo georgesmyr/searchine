@@ -1,12 +1,18 @@
+use std::cmp::{Ord, Ordering, PartialOrd};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use walkdir::DirEntry;
 use serde::{Deserialize, Serialize};
 
+/// A struct representing an entry in the corpus index.
+/// It contains the document ID and the last time the document was modified.
+///
+/// The document ID is a unique identifier for each document in the corpus.
+/// The last modified time is used to determine if the document has been
+/// modified since the last indexing.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CorpusIndexEntry {
     pub document_id: usize,
@@ -24,6 +30,26 @@ impl CorpusIndexEntry {
     }
 }
 
+impl Ord for CorpusIndexEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.document_id.cmp(&other.document_id)
+    }
+}
+
+impl PartialOrd for CorpusIndexEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for CorpusIndexEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.document_id == other.document_id
+    }
+}
+
+impl Eq for CorpusIndexEntry {}
+
 /// A struct representing a corpus index, which also serves as cache.
 ///
 /// This struct is used to build an in-memory index for multiple documents.
@@ -31,6 +57,7 @@ impl CorpusIndexEntry {
 /// document was indexed.
 #[derive(Serialize, Deserialize)]
 pub struct CorpusIndex {
+    root_dir: PathBuf,
     index: HashMap<PathBuf, CorpusIndexEntry>,
     next_id: usize,
 }
@@ -38,34 +65,32 @@ pub struct CorpusIndex {
 impl Default for CorpusIndex {
     fn default() -> Self {
         Self {
+            root_dir: PathBuf::new(),
             index: HashMap::new(),
             next_id: 0,
         }
     }
 }
 
-impl TryFrom<Vec<DirEntry>> for CorpusIndex {
-    type Error = io::Error;
-    fn try_from(iter: Vec<DirEntry>) -> io::Result<Self> {
-        let mut index = CorpusIndex::default();
-        for entry in iter {
-            index.insert(entry)?;
-        }
-        Ok(index)
-    }
-}
-
 impl CorpusIndex {
     /// Adds a document to the index, and assigns it a unique ID.
-    fn insert(&mut self, dir_entry: DirEntry) -> io::Result<()> {
-        let document_path = dir_entry.path().to_path_buf();
+    fn insert(&mut self, document_path: PathBuf) -> io::Result<()> {
         if !self.index.contains_key(&document_path) {
-            let modified = dir_entry.metadata()?.modified()?;
+            let modified = document_path.metadata()?.modified()?;
             let entry = CorpusIndexEntry::new(self.next_id, modified);
             self.index.insert(document_path, entry);
             self.next_id += 1;
         }
         Ok(())
+    }
+
+    /// Creates a new `CorpusIndex` from an iterator of paths.
+    pub fn from_paths(iter: impl IntoIterator<Item=PathBuf>) -> io::Result<Self> {
+        let mut index = CorpusIndex::default();
+        for path in iter {
+            index.insert(path)?;
+        }
+        Ok(index)
     }
 
     /// Returns the document id for a given path. If the path is not found

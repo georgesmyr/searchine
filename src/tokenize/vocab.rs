@@ -34,8 +34,9 @@ impl Vocabulary {
     /// Reads a vocabulary from disk.
     pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
         let file = File::open(path)?;
+        let reader = std::io::BufReader::new(file);
         let token_to_id =
-            serde_json::from_reader(file).expect("Failed to read vocabulary from disk");
+            serde_json::from_reader(reader).expect("Failed to read vocabulary from disk");
         Ok(Self { token_to_id })
     }
 
@@ -65,7 +66,8 @@ impl Vocabulary {
     /// Writes the vocabulary to disk.
     pub fn write_to_disk(self, path: impl AsRef<Path>) {
         let file = File::create(path).expect("Failed to create file");
-        serde_json::to_writer_pretty(file, &self.token_to_id)
+        let writer = std::io::BufWriter::new(file);
+        serde_json::to_writer_pretty(writer, &self.token_to_id)
             .expect("Failed to write vocabulary to disk");
     }
 }

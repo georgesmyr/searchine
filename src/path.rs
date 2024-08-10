@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf, StripPrefixError};
 use std::cmp::Ordering;
 use std::ffi::OsStr;
+use std::path::{Path, PathBuf, StripPrefixError};
 
 /// Checks if a directory is contained in a directory with specified name.
 /// If it is, returns the path to the repo. Otherwise, returns `None`.
@@ -22,7 +22,7 @@ use std::ffi::OsStr;
 /// assert_eq!(get_repo_path(dir_path, target_dir), Some(repo_path));
 /// ```
 pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -> Option<PathBuf> {
-    let path = crate::fs::canonicalize(path)?;
+    let path = std::fs::canonicalize(path).ok()?;
     let mut path = path.as_path();
     if dir_contains(&path, &repo_dir_name) {
         return Some(path.join(repo_dir_name));
@@ -35,7 +35,6 @@ pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -
     }
     None
 }
-
 
 /// Returns the relative path of `path` relative to `base_path`.
 ///
@@ -75,7 +74,6 @@ fn dir_contains(dir: impl AsRef<Path>, name: impl AsRef<Path>) -> bool {
     dir.as_ref().join(name).exists()
 }
 
-
 /// Compares the base name of two entries.
 ///
 /// This function compares the base name of two entries, taking into account
@@ -92,12 +90,7 @@ fn dir_contains(dir: impl AsRef<Path>, name: impl AsRef<Path>) -> bool {
 /// # Returns
 ///
 /// An `Ordering` value indicating the relative order of the entries.
-pub fn compare_base_name(
-    name1: &OsStr,
-    name2: &OsStr,
-    is_dir1: bool,
-    is_dir2: bool,
-) -> Ordering {
+pub fn compare_base_name(name1: &OsStr, name2: &OsStr, is_dir1: bool, is_dir2: bool) -> Ordering {
     let name1 = name1.as_encoded_bytes();
     let name2 = name2.as_encoded_bytes();
     let common_len = std::cmp::min(name1.len(), name2.len());
