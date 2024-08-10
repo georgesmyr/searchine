@@ -1,8 +1,13 @@
 pub mod doc;
 
+use std::collections::{BTreeSet, HashMap};
+use std::io;
+use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+
 use crate::postings::*;
 pub use doc::{InMemoryDocumentIndex, InMemoryDocumentIndexer};
-use std::collections::{BTreeSet, HashMap};
 
 /// An in-memory index for multiple documents. The index is a HashMap
 /// with the document ID as the key and an in-memory document index as
@@ -50,15 +55,30 @@ impl<T: Posting> InMemoryIndex<T> {
     pub fn n_docs(&self) -> usize {
         self.index.len()
     }
+
+    /// Writes the index to disk.
+    pub fn write_to_disk(self, path: impl AsRef<Path>) {
+        let file = std::fs::File::create(path)
+            .expect("Failed to create file");
+        let writer = io::BufWriter::new(file);
+        // serde_json::to_writer_pretty(writer, &self.index)
+        //     .expect("Failed to write index to disk");
+    }
 }
 
 /// An in-memory inverted index. The inverted index is a HashMap with
 /// the term ID as the key and a postings list as the value.
-pub struct InMemoryInvertedIndex<T> {
+pub struct InMemoryInvertedIndex<T>
+where
+    T: Serialize + Deserialize<'static>,
+{
     pub index: HashMap<usize, PostingsList<T>>,
 }
 
-impl<T: Posting> InMemoryInvertedIndex<T> {
+impl<T: Posting> InMemoryInvertedIndex<T>
+where
+    T: Serialize + Deserialize<'static>,
+{
     /// Creates a new in-memory inverted index.
     pub fn new() -> Self {
         Self {

@@ -19,4 +19,9 @@ pub enum Commands {
     ListCorpus { dir_path: Option<String> },
     CreateVocabulary { dir_path: Option<String> },
     Index { dir_path: Option<String> },
+    Find {
+        dir_path: Option<String>,
+        query: String,
+        top_n: Option<usize>,
+    },
 }

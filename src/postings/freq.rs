@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+
 use crate::postings::Posting;
 
 /// A posting for a term in a document, containing the document ID and the
@@ -16,7 +18,7 @@ use crate::postings::Posting;
 /// assert_eq!(postings.doc_id(), 1);
 /// assert_eq!(postings.term_count(), 2);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FrequencyPosting {
     doc_id: usize,
     term_count: usize,

@@ -1,5 +1,8 @@
-use crate::postings::Posting;
 use std::collections::HashSet;
+
+use serde::{Serialize, Deserialize};
+
+use crate::postings::Posting;
 
 /// A posting for a term in a document, containing the document ID and the
 /// positions of the term in the document.
@@ -18,7 +21,7 @@ use std::collections::HashSet;
 /// assert_eq!(postings.term_positions(), &HashMap::from([2, 3]));
 /// assert_eq!(postings.term_count(), 2);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PositionsPosting {
     doc_id: usize,
     term_pos: HashSet<usize>,

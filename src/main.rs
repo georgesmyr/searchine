@@ -18,6 +18,8 @@ const DIR_PATH: &str = "/Users/georgesmyridis/Desktop/Projects/docs.gl/gl4/";
 const SEARCHINE_PATH: &str = ".searchine";
 const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";
 const VOCABULARY_FILENAME: &str = "vocabulary.json";
+const INDEX_FILENAME: &str = "index.json";
+
 
 fn main() -> anyhow::Result<()> {
     let args = SearchineCli::parse();
@@ -63,11 +65,23 @@ fn main() -> anyhow::Result<()> {
         Commands::Index { dir_path } => {
             let dir_path = dir_path.unwrap_or(".".to_string());
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                commands::index(repo_path)?;
+                if !repo_path.join(CORPUS_INDEX_FILENAME).exists() {
+                    let _ = commands::index_corpus(&repo_path, CORPUS_INDEX_FILENAME);
+                }
+                if !repo_path.join(VOCABULARY_FILENAME).exists() {
+                    let _ = commands::create_vocabulary(&repo_path, VOCABULARY_FILENAME);
+                }
+                commands::index(repo_path, INDEX_FILENAME)?;
             } else {
                 eprintln!("Index does not exist at: {}", dir_path);
             }
         }
+        // Commands::Find { dir_path, query, top_n} => {
+        //     let dir_path = dir_path.unwrap_or(".".to_string());
+        //     if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
+        //         if !repo_path.join(INDEX_FILENAME)
+        //     }
+        // }
         _ => {}
     }
 

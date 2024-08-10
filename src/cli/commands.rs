@@ -9,7 +9,6 @@ use rayon::prelude::*;
 use crate::fs::Directory;
 use crate::index::corpus::CorpusIndex;
 use crate::index::im::{InMemoryDocumentIndexer, InMemoryIndex};
-use crate::path::get_relative_path;
 use crate::postings::FrequencyPosting;
 use crate::tokenize::{Builder, Encoder, Vocabulary};
 
@@ -151,7 +150,7 @@ pub fn create_vocabulary(
     Ok(())
 }
 
-pub fn index(repo_dir: impl AsRef<Path>) -> io::Result<()> {
+pub fn index(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();
     let vocab_path = repo_dir.join("vocabulary.json");
     let vocabulary = Vocabulary::from_file(vocab_path)?;
@@ -174,13 +173,6 @@ pub fn index(repo_dir: impl AsRef<Path>) -> io::Result<()> {
         index.insert(doc_index);
     };
 
-    for (doc_id, doc_index) in index.index {
-        println!(
-            "Document ID: {} -> Index Length: {}",
-            doc_id,
-            doc_index.n_terms()
-        );
-    }
-    // index.write_to_disk("index.json")?;
+    // index.write_to_disk(repo_dir.join(index_name));
     Ok(())
 }

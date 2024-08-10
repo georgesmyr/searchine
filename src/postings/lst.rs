@@ -1,5 +1,8 @@
-use crate::postings::Posting;
 use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
+use crate::postings::Posting;
 
 /// A list of postings for a specific term. Each posting in the list
 /// corresponds to a document in which the term appears.
@@ -27,12 +30,18 @@ use std::collections::HashMap;
 /// assert_eq!(postings.get(2).unwrap().term_frequency(), 1);
 /// ```
 #[derive(Debug, Clone)]
-pub struct PostingsList<T> {
+pub struct PostingsList<T>
+where
+    T: Serialize + Deserialize<'static>,
+{
     /// HashMap of postings `T` with the document ID as the key.
     postings: HashMap<usize, T>,
 }
 
-impl<T: Posting> PostingsList<T> {
+impl<T> PostingsList<T>
+where
+    T: Posting + Serialize + Deserialize<'static>,
+{
     /// Creates a new, empty list of postings.
     pub fn new() -> Self {
         Self {
@@ -67,7 +76,10 @@ impl<T: Posting> PostingsList<T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a PostingsList<T> {
+impl<'a, T> IntoIterator for &'a PostingsList<T>
+where
+    T: Serialize + Deserialize<'static>,
+{
     type Item = (&'a usize, &'a T);
     type IntoIter = std::collections::hash_map::Iter<'a, usize, T>;
 

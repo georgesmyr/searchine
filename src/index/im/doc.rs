@@ -1,5 +1,8 @@
-use crate::postings::{FrequencyPosting, PositionsPosting, Posting};
 use std::collections::HashMap;
+
+use serde::{Serialize, Deserialize};
+
+use crate::postings::{FrequencyPosting, PositionsPosting, Posting};
 
 /// A struct representing an in-memory document index.
 ///
@@ -27,7 +30,7 @@ use std::collections::HashMap;
 /// assert_eq!(index.get("hello").unwrap().term_frequency(), 2);
 /// assert_eq!(index.get("world").unwrap().term_frequency(), 1);
 /// ```
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InMemoryDocumentIndex<T> {
     doc_id: usize,
     index: HashMap<usize, T>,
