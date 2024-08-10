@@ -1,8 +1,10 @@
 use std::collections::BTreeSet;
 use std::io::{self, Write};
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 
 use tabwriter::TabWriter;
+use rayon::prelude::*;
 
 use crate::fs::Directory;
 use crate::index::corpus::CorpusIndex;
@@ -120,7 +122,7 @@ pub fn create_vocabulary(
 ) -> io::Result<()> {
     // Initialize tokenizer and vocabulary.
     let tokenizer = Builder::default().build();
-    let mut vocab = Vocabulary::new();
+    let mut vocab = Arc::new(Mutex::new(Vocabulary::new()));
 
     // For each directory entry, read the file and tokenize the content.
     // Add the tokens to the vocabulary.
@@ -134,42 +136,45 @@ pub fn create_vocabulary(
     println!("Creating vocabulary from: {}\n", base_dir.display());
     let dir = Directory::new(base_dir)?;
     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
-    for path in dir {
-        let rel_path = get_relative_path(&path, &base_dir).unwrap();
-        // println!("- Parsing document: {}", rel_path.display());
-
-        let content = crate::fs::docs::read_to_string(&path)?;
+    dir.par_iter().for_each(|path| {
+        let content = crate::fs::docs::read_to_string(&path).unwrap();
         let tokens = tokenizer.tokenize(&content);
+        let mut vocab = vocab.lock().unwrap();
         vocab.add_tokens(&tokens);
-    }
+    });
 
     // Write the vocabulary to the output file.
     let output_path = repo_dir.join(vocabulary_file_name);
     println!("\nWriting vocabulary to: {}", output_path.display());
+    let vocab = Arc::try_unwrap(vocab).expect("").into_inner().unwrap();
     vocab.write_to_disk(output_path);
     Ok(())
 }
 
-// pub fn index(dir_path: impl AsRef<Path>, output_path: impl AsRef<Path>) -> io::Result<()> {
-//     let vocab = Vocabulary::from_file("vocab.json")?;
-//     let encoder = Encoder::from(vocab);
+// pub fn index(repo_dir: impl AsRef<Path>) -> io::Result<()> {
+//     let repo_dir = repo_dir.as_ref();
+//     let vocab_path = repo_dir.join("vocabulary.json");
+//     let vocabulary = Vocabulary::from_file(vocab_path)?;
+//     let encoder = Encoder::from(vocabulary);
 //     let tokenizer = Builder::default().with_encoder(encoder).build();
-//     let mut index = InMemoryIndex::<FrequencyPosting>::new();
 //
-//     // Read the directory
-//     let dir = std::fs::read_dir(dir_path)?;
-//     let dir = dir.collect::<Result<Vec<_>, _>>()?;
-//     let corpus_index = crate::index::corpus::CorpusIndex::try_from(dir)?;
-//     for (path, entry) in &corpus_index {
-//         let content = crate::fs::Document::read_to_string(&path)?;
+//     let dir_path = repo_dir.parent().unwrap();
+//     let dir = Directory::new(dir_path)?;
+//     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
+//     let corpus_index = Arc::new(Mutex::new(CorpusIndex::from_paths(dir)?));
+//
+//     let index = Arc::new(Mutex::new(InMemoryIndex::<FrequencyPosting>::new()));
+//     corpus_index.lock().unwrap().index.par_iter().for_each(|(path, _)| {
+//         let content = crate::fs::docs::read_to_string(&path).unwrap();
 //         let tokens = tokenizer.tokenize(&content);
-//         let document_id = corpus_index.get_document_id(&path).unwrap();
+//         let document_id = corpus_index.lock().unwrap().get_document_id(&path).unwrap();
 //         let mut doc_indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(document_id);
 //         doc_indexer.index_tokens(tokens);
 //         let doc_index = doc_indexer.finalize();
-//         index.insert(doc_index);
-//     }
+//         index.lock().unwrap().insert(doc_index);
+//     });
 //
+//     let index = Arc::try_unwrap(index).expect("Failed to unwrap Arc").into_inner().unwrap();
 //     for (doc_id, doc_index) in index.index {
 //         println!(
 //             "Document ID: {} -> Index Length: {}",

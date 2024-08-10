@@ -85,7 +85,7 @@ impl CorpusIndex {
     }
 
     /// Creates a new `CorpusIndex` from an iterator of paths.
-    pub fn from_paths(iter: impl IntoIterator<Item = PathBuf>) -> io::Result<Self> {
+    pub fn from_paths(iter: impl IntoIterator<Item=PathBuf>) -> io::Result<Self> {
         let mut index = CorpusIndex::default();
         for path in iter {
             index.insert(path)?;

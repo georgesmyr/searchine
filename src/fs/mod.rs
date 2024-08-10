@@ -3,4 +3,4 @@ pub mod dir;
 pub mod docs;
 
 pub use dir::Directory;
-pub use docs::DocumentType;
+pub use docs::{DocumentType, read_to_string};

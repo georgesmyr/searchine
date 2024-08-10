@@ -18,7 +18,7 @@ use std::path::Path;
 /// assert_eq!(vocab.get_token_id("hello"), Some(0));
 /// assert_eq!(vocab.get_token_id("world"), Some(1));
 /// ```
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Vocabulary {
     token_to_id: std::collections::HashMap<String, usize>,
 }
@@ -52,7 +52,7 @@ impl Vocabulary {
     }
 
     /// Adds a list of tokens to the vocabulary.
-    pub fn add_tokens<'a>(&mut self, tokens: impl IntoIterator<Item = &'a String>) {
+    pub fn add_tokens<'a>(&mut self, tokens: impl IntoIterator<Item=&'a String>) {
         for token in tokens {
             self.add_token(token);
         }

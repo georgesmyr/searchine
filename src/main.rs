@@ -60,7 +60,14 @@ fn main() -> anyhow::Result<()> {
                 eprintln!("Index does not exist at: {}", dir_path);
             }
         }
-        // // Commands::Index { path } => {}
+        // Commands::Index { dir_path } => {
+        //     let dir_path = dir_path.unwrap_or(".".to_string());
+        //     if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
+        //         commands::index(repo_path)?;
+        //     } else {
+        //         eprintln!("Index does not exist at: {}", dir_path);
+        //     }
+        // }
         _ => {}
     }
 

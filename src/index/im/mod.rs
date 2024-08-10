@@ -14,8 +14,9 @@ use std::collections::{BTreeSet, HashMap};
 /// use crate::index::InMemoryIndex;
 /// use crate::postings::FrequencyPosting;
 /// ```
+#[derive(Debug)]
 pub struct InMemoryIndex<T> {
-    pub index: HashMap<usize, InMemoryDocumentIndex<T>>,
+    index: HashMap<usize, InMemoryDocumentIndex<T>>,
 }
 
 impl<T: Posting> InMemoryIndex<T> {
