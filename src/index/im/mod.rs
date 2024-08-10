@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::io;
 use std::path::Path;
 
-use serde::{Deserialize, Serialize};
-
 pub use doc::{InMemoryDocumentIndex, InMemoryDocumentIndexer};
 
 /// An in-memory index for multiple documents. The index is a HashMap
@@ -33,11 +31,10 @@ impl InMemoryIndex {
 
     /// Creates a new in-memory index from a file.
     pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
-        let file = std::fs::File::open(path)
-            .expect("Failed to open file");
+        let file = std::fs::File::open(path).expect("Failed to open file");
         let reader = io::BufReader::new(file);
-        let index: HashMap<usize, InMemoryDocumentIndex> = serde_json::from_reader(reader)
-            .expect("Failed to read index from disk");
+        let index: HashMap<usize, InMemoryDocumentIndex> =
+            serde_json::from_reader(reader).expect("Failed to read index from disk");
         Ok(Self { index })
     }
 
@@ -67,11 +64,9 @@ impl InMemoryIndex {
 
     /// Writes the index to disk.
     pub fn write_to_disk(self, path: impl AsRef<Path>) {
-        let file = std::fs::File::create(path)
-            .expect("Failed to create file");
+        let file = std::fs::File::create(path).expect("Failed to create file");
         let writer = io::BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, &self.index)
-            .expect("Failed to write index to disk");
+        serde_json::to_writer_pretty(writer, &self.index).expect("Failed to write index to disk");
     }
 }
 

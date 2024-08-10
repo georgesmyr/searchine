@@ -9,7 +9,6 @@ use xml::reader::{EventReader, XmlEvent};
 pub enum DocumentType {
     Xml,
     Text,
-    Html,
     Pdf,
 }
 

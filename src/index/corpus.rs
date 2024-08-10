@@ -85,11 +85,20 @@ impl CorpusIndex {
     }
 
     /// Creates a new `CorpusIndex` from an iterator of paths.
-    pub fn from_paths(iter: impl IntoIterator<Item=PathBuf>) -> io::Result<Self> {
+    pub fn from_paths(iter: impl IntoIterator<Item = PathBuf>) -> io::Result<Self> {
         let mut index = CorpusIndex::default();
         for path in iter {
             index.insert(path)?;
         }
+        Ok(index)
+    }
+
+    /// Load the document index from a disk.
+    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
+        let path = path.as_ref();
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let index: CorpusIndex = serde_json::from_reader(reader)?;
         Ok(index)
     }
 
@@ -121,15 +130,6 @@ impl CorpusIndex {
         serde_json::to_writer_pretty(writer, self)?;
         Ok(())
     }
-
-    /// Load the document index from a disk.
-    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
-        let path = path.as_ref();
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-        let index: CorpusIndex = serde_json::from_reader(reader)?;
-        Ok(index)
-    }
 }
 
 impl IntoIterator for CorpusIndex {
@@ -147,5 +147,39 @@ impl<'a> IntoIterator for &'a CorpusIndex {
 
     fn into_iter(self) -> Self::IntoIter {
         self.index.iter()
+    }
+}
+
+/// A struct representing an inverted corpus index.
+///
+/// This struct maps document IDs to their corresponding paths.
+pub struct InvertedCorpusIndex {
+    inner: HashMap<usize, PathBuf>,
+}
+
+impl InvertedCorpusIndex {
+    /// Creates a new InvertedCorpusIndex from a file that stores the
+    /// corpus index.
+    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
+        let corpus_index = CorpusIndex::from_file(path)?;
+        let inner = corpus_index
+            .into_iter()
+            .map(|(path, entry)| (entry.document_id, path))
+            .collect::<HashMap<usize, PathBuf>>();
+        Ok(Self { inner })
+    }
+
+    /// Retrieves the path associated with a given document ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `document_id` - The unique identifier of the document.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the `PathBuf` if the document ID exists,
+    /// or `None` if it does not.
+    pub fn get_path(&self, document_id: usize) -> Option<&PathBuf> {
+        self.inner.get(&document_id)
     }
 }

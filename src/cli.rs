@@ -1,4 +1,3 @@
-pub mod commands;
 use clap;
 
 #[derive(clap::Parser)]
@@ -14,14 +13,24 @@ pub struct SearchineCli {
 
 #[derive(clap::Subcommand)]
 pub enum Commands {
-    Init { dir_path: Option<String> },
-    IndexCorpus { dir_path: Option<String> },
-    ListCorpus { dir_path: Option<String> },
-    CreateVocabulary { dir_path: Option<String> },
-    Index { dir_path: Option<String> },
-    Find {
+    Init {
         dir_path: Option<String>,
+    },
+    IndexCorpus {
+        dir_path: Option<String>,
+    },
+    ListCorpus {
+        dir_path: Option<String>,
+    },
+    CreateVocabulary {
+        dir_path: Option<String>,
+    },
+    Index {
+        dir_path: Option<String>,
+    },
+    Search {
         query: String,
+        dir_path: Option<String>,
         top_n: Option<usize>,
     },
 }

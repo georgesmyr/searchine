@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// A struct representing an in-memory document index.
 ///
@@ -9,6 +9,8 @@ use serde::{Serialize, Deserialize};
 /// a posting, which is the frequency of the word in the document.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InMemoryDocumentIndex {
+    /// Count of the total number of terms in the document.
+    count: usize,
     index: HashMap<usize, usize>,
 }
 
@@ -23,9 +25,9 @@ impl InMemoryDocumentIndex {
         self.index.get(term)
     }
 
-    /// Returns the length of the index, i.e. the number of terms.
-    pub fn n_terms(&self) -> usize {
-        self.index.len()
+    /// Returns the total number of terms in the document.
+    pub fn count(&self) -> usize {
+        self.count
     }
 
     /// Returns the number of occurrences of a term in the document.
@@ -52,16 +54,17 @@ impl IntoIterator for InMemoryDocumentIndex {
 /// This struct is used to index tokens for a single document, identified by `doc_id`.
 /// The index is stored in memory and can be finalized to an `InMemoryDocumentIndex`.
 pub struct InMemoryDocumentIndexer {
-    doc_id: usize,
+    /// Count of the total number of terms in the document.
+    count: usize,
     index: HashMap<usize, usize>,
 }
 
 impl InMemoryDocumentIndexer {
     /// Creates a new in-memory indexer for a single document with
     /// specified document ID.
-    pub fn new(doc_id: usize) -> Self {
+    pub fn new() -> Self {
         Self {
-            doc_id,
+            count: 0,
             index: HashMap::new(),
         }
     }
@@ -70,6 +73,7 @@ impl InMemoryDocumentIndexer {
     /// the indexer.
     pub fn finalize(self) -> InMemoryDocumentIndex {
         InMemoryDocumentIndex {
+            count: self.count,
             index: self.index,
         }
     }
@@ -88,6 +92,7 @@ impl InMemoryDocumentIndexer {
     /// If the token is already in the index, the frequency count is incremented.
     /// Otherwise, a new posting is created.
     fn add_token(&mut self, token: usize) {
+        self.count += 1;
         if let Some(posting) = self.index.get_mut(&token) {
             *posting += 1
         } else {

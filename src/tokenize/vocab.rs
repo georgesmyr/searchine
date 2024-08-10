@@ -52,7 +52,7 @@ impl Vocabulary {
     }
 
     /// Adds a list of tokens to the vocabulary.
-    pub fn add_tokens<'a>(&mut self, tokens: impl IntoIterator<Item=&'a String>) {
+    pub fn add_tokens<'a>(&mut self, tokens: impl IntoIterator<Item = &'a String>) {
         for token in tokens {
             self.add_token(token);
         }

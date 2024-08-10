@@ -41,3 +41,6 @@ Searchine will be a search engine from your CLI!
 - [ ] Compress files
 - [ ] Use memory mapped files
 - [ ] Parse XMLs faster (quick-xml?)
+- [ ] Select top n results with heap or quick-select algorithm
+- [ ] Make use of SIMD instructions?
+- [ ] Deserialize corpus index to Inverted corpus index immediately.

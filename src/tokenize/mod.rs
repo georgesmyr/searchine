@@ -1,9 +1,6 @@
 pub mod vocab;
-pub type TokenIds = Vec<usize>;
 
 use rust_stemmers::{Algorithm, Stemmer};
-use serde::{Deserialize, Serialize};
-use serde_json;
 
 pub use vocab::Vocabulary;
 
@@ -125,22 +122,6 @@ pub struct Tokenizer<E> {
     pre_tokenizer: PreTokenizer,
     stemmer: Stemmer,
     encoder: E,
-}
-
-impl<E> Tokenizer<E> {
-    /// Creates a new `Builder` instance from the current `Tokenizer`.
-    ///
-    /// # Returns
-    ///
-    /// A `Builder<E>` instance with the pre-tokenizer, stemmer, and encoder `E`
-    /// from the current `Tokenizer`.
-    pub fn builder(self) -> Builder<E> {
-        Builder {
-            pre_tokenizer: self.pre_tokenizer,
-            stemmer: self.stemmer,
-            encoder: self.encoder,
-        }
-    }
 }
 
 impl Tokenizer<NoEncoder> {
