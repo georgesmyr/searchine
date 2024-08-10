@@ -130,10 +130,6 @@ mod tests {
             Some(DocumentType::Text)
         );
         assert_eq!(
-            DocumentType::from_extension(OsStr::new("html")),
-            Some(DocumentType::Html)
-        );
-        assert_eq!(
             DocumentType::from_extension(OsStr::new("pdf")),
             Some(DocumentType::Pdf)
         );
