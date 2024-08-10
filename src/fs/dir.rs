@@ -54,7 +54,7 @@ impl Directory {
     ///
     /// Hidden directories and files (starting with a dot `.`) are ignored,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_relative_paths(&self) -> impl Iterator<Item=PathBuf> {
+    pub fn iter_relative_paths(&self) -> impl Iterator<Item = PathBuf> {
         WalkDir::new(&self.path)
             .into_iter()
             .filter_entry(|entry| !is_hidden(entry))
@@ -72,7 +72,7 @@ impl Directory {
     ///
     /// Hidden directories and files (starting with a dot `.`) are ignored,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_full_paths(&self) -> impl Iterator<Item=PathBuf> {
+    pub fn iter_full_paths(&self) -> impl Iterator<Item = PathBuf> {
         self.iter_relative_paths()
             .filter_map(|path| path.canonicalize().ok())
     }
@@ -82,7 +82,7 @@ impl Directory {
     ///
     /// The directory entries are filtered by the `is_ignored` function,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_repo_paths(&self) -> impl Iterator<Item=PathBuf> + '_ {
+    pub fn iter_repo_paths(&self) -> impl Iterator<Item = PathBuf> + '_ {
         self.iter_relative_paths()
             .filter_map(|path| get_relative_path(&path, &self.path).ok())
     }

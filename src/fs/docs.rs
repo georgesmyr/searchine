@@ -28,9 +28,8 @@ impl DocumentType {
     /// ```
     pub fn from_extension(ext: &OsStr) -> Option<Self> {
         match ext.to_str().unwrap() {
-            "xhtml" => Some(Self::Xml),
+            "xhtml" | "html" | "xml" => Some(Self::Xml),
             "txt" | "md" => Some(Self::Text),
-            "html" => Some(Self::Html),
             "pdf" => Some(Self::Pdf),
             _ => None,
         }
