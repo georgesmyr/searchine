@@ -16,7 +16,7 @@ use std::collections::{BTreeSet, HashMap};
 /// ```
 #[derive(Debug)]
 pub struct InMemoryIndex<T> {
-    index: HashMap<usize, InMemoryDocumentIndex<T>>,
+    pub index: HashMap<usize, InMemoryDocumentIndex<T>>,
 }
 
 impl<T: Posting> InMemoryIndex<T> {

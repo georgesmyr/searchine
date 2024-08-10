@@ -151,37 +151,36 @@ pub fn create_vocabulary(
     Ok(())
 }
 
-// pub fn index(repo_dir: impl AsRef<Path>) -> io::Result<()> {
-//     let repo_dir = repo_dir.as_ref();
-//     let vocab_path = repo_dir.join("vocabulary.json");
-//     let vocabulary = Vocabulary::from_file(vocab_path)?;
-//     let encoder = Encoder::from(vocabulary);
-//     let tokenizer = Builder::default().with_encoder(encoder).build();
-//
-//     let dir_path = repo_dir.parent().unwrap();
-//     let dir = Directory::new(dir_path)?;
-//     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
-//     let corpus_index = Arc::new(Mutex::new(CorpusIndex::from_paths(dir)?));
-//
-//     let index = Arc::new(Mutex::new(InMemoryIndex::<FrequencyPosting>::new()));
-//     corpus_index.lock().unwrap().index.par_iter().for_each(|(path, _)| {
-//         let content = crate::fs::docs::read_to_string(&path).unwrap();
-//         let tokens = tokenizer.tokenize(&content);
-//         let document_id = corpus_index.lock().unwrap().get_document_id(&path).unwrap();
-//         let mut doc_indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(document_id);
-//         doc_indexer.index_tokens(tokens);
-//         let doc_index = doc_indexer.finalize();
-//         index.lock().unwrap().insert(doc_index);
-//     });
-//
-//     let index = Arc::try_unwrap(index).expect("Failed to unwrap Arc").into_inner().unwrap();
-//     for (doc_id, doc_index) in index.index {
-//         println!(
-//             "Document ID: {} -> Index Length: {}",
-//             doc_id,
-//             doc_index.n_terms()
-//         );
-//     }
-//     // index.write_to_disk("index.json")?;
-//     Ok(())
-// }
+pub fn index(repo_dir: impl AsRef<Path>) -> io::Result<()> {
+    let repo_dir = repo_dir.as_ref();
+    let vocab_path = repo_dir.join("vocabulary.json");
+    let vocabulary = Vocabulary::from_file(vocab_path)?;
+    let encoder = Encoder::from(vocabulary);
+    let tokenizer = Builder::default().with_encoder(encoder).build();
+
+    let dir_path = repo_dir.parent().unwrap();
+    let dir = Directory::new(dir_path)?;
+    let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
+    let corpus_index = CorpusIndex::from_paths(dir)?;
+
+    let mut index = InMemoryIndex::<FrequencyPosting>::new();
+    for (path, _) in &corpus_index {
+        let content = crate::fs::docs::read_to_string(&path).unwrap();
+        let tokens = tokenizer.tokenize(&content);
+        let document_id = corpus_index.get_document_id(&path).unwrap();
+        let mut doc_indexer = InMemoryDocumentIndexer::<FrequencyPosting>::new(document_id);
+        doc_indexer.index_tokens(tokens);
+        let doc_index = doc_indexer.finalize();
+        index.insert(doc_index);
+    };
+
+    for (doc_id, doc_index) in index.index {
+        println!(
+            "Document ID: {} -> Index Length: {}",
+            doc_id,
+            doc_index.n_terms()
+        );
+    }
+    // index.write_to_disk("index.json")?;
+    Ok(())
+}
