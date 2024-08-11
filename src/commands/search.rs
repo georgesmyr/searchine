@@ -1,4 +1,5 @@
 use std::io;
+use std::io::Write;
 use std::path::Path;
 
 use crate::tokenize::*;
@@ -42,7 +43,13 @@ pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> io::Resu
         .iter()
         .map(|(doc, score)| (inv_corpus_index.get_path(*doc).unwrap(), *score))
         .collect::<Vec<_>>();
-    // display_results(&top_n_results)?;
+
+    let mut tw = tabwriter::TabWriter::new(io::stdout()).padding(2);
+    writeln!(tw, "\t{}\t{}\t{}", "No.", "Path", "Score")?;
+    for (i, (path, score)) in top_n_results.iter().enumerate() {
+        writeln!(tw, "\t{}\t{}\t{}", i, path.display(), score)?;
+    }
+    tw.flush()?;
 
     Ok(())
 }
