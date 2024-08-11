@@ -47,8 +47,8 @@ pub fn invoke(
             tab_writer,
             "\t{}\t{}\t{:?}",
             path.display(),
-            entry.document_id,
-            entry.modified
+            entry.document_id(),
+            entry.modified()
         );
     }
     tab_writer.flush()?;

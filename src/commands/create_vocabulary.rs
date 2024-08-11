@@ -20,7 +20,7 @@ use crate::tokenize::*;
 pub fn invoke(
     repo_dir: impl AsRef<Path>,
     vocabulary_file_name: impl AsRef<Path>,
-) -> io::Result<()> {
+) -> io::Result<Vocabulary> {
     // Initialize tokenizer and vocabulary.
     let tokenizer = Builder::default().build();
     let mut vocab = Arc::new(Mutex::new(Vocabulary::new()));
@@ -48,6 +48,6 @@ pub fn invoke(
     let output_path = repo_dir.join(vocabulary_file_name);
     println!("\nWriting vocabulary to: {}", output_path.display());
     let vocab = Arc::try_unwrap(vocab).expect("").into_inner().unwrap();
-    vocab.write_to_disk(output_path);
-    Ok(())
+    vocab.write_to_file(output_path);
+    Ok(vocab)
 }

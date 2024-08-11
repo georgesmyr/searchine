@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 /// modified since the last indexing.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CorpusIndexEntry {
-    pub document_id: usize,
-    pub modified: SystemTime,
+    document_id: usize,
+    modified: SystemTime,
 }
 
 impl CorpusIndexEntry {
@@ -27,6 +27,17 @@ impl CorpusIndexEntry {
             document_id,
             modified,
         }
+    }
+
+    /// Returns the last-modified-time of associate with the document,
+    /// at the time that it was indexed.
+    pub fn modified(&self) -> SystemTime {
+        self.modified
+    }
+
+    /// Returns the document ID associated with the document.
+    pub fn document_id(&self) -> usize {
+        self.document_id
     }
 }
 
@@ -74,7 +85,7 @@ impl Default for CorpusIndex {
 
 impl CorpusIndex {
     /// Adds a document to the index, and assigns it a unique ID.
-    fn insert(&mut self, document_path: PathBuf) -> io::Result<()> {
+    pub fn insert(&mut self, document_path: PathBuf) -> io::Result<()> {
         if !self.index.contains_key(&document_path) {
             let modified = document_path.metadata()?.modified()?;
             let entry = CorpusIndexEntry::new(self.next_id, modified);
@@ -85,7 +96,7 @@ impl CorpusIndex {
     }
 
     /// Creates a new `CorpusIndex` from an iterator of paths.
-    pub fn from_paths(iter: impl IntoIterator<Item = PathBuf>) -> io::Result<Self> {
+    pub fn from_paths(iter: impl IntoIterator<Item=PathBuf>) -> io::Result<Self> {
         let mut index = CorpusIndex::default();
         for path in iter {
             index.insert(path)?;
@@ -100,6 +111,12 @@ impl CorpusIndex {
         let reader = BufReader::new(file);
         let index: CorpusIndex = serde_json::from_reader(reader)?;
         Ok(index)
+    }
+
+    /// Returns true if the index contains a document with the specified path.
+    /// Otherwise, it returns false.
+    pub fn contains_path(&self, document_path: &PathBuf) -> bool {
+        self.index.contains_key(document_path)
     }
 
     /// Returns the document id for a given path. If the path is not found
@@ -118,8 +135,37 @@ impl CorpusIndex {
     /// # Arguments
     ///
     /// * `document_path` - The path to the document.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the last modified time if the document exists,
+    /// or `None` if it does not.
+    pub fn get_last_modified(&self, document_path: &PathBuf) -> Option<SystemTime> {
+        Some(self.index.get(document_path)?.modified)
+    }
+
+    /// Returns the last modified time for a given path. If the path is not found
+    /// in the index, `None` is returned.
+    ///
+    /// # Arguments
+    ///
+    /// * `document_path` - The path to the document.
     pub fn get_modified(&self, document_path: &PathBuf) -> Option<SystemTime> {
         Some(self.index.get(document_path)?.modified)
+    }
+
+    /// Removes an index entry with the specified document path.
+    ///
+    /// # Arguments
+    ///
+    /// * `document_path` - The path to the document.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the removed `CorpusIndexEntry` if it exists,
+    /// or `None` if it does not.
+    pub fn remove(&mut self, document_path: &PathBuf) -> Option<CorpusIndexEntry> {
+        self.index.remove(document_path)
     }
 
     /// Write the document index to a disk.

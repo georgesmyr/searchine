@@ -2,10 +2,10 @@ use std::io;
 use std::io::Write;
 use std::path::Path;
 
-use crate::tokenize::*;
-use crate::index::im::*;
 use crate::index::corpus::*;
+use crate::index::im::*;
 use crate::scores::*;
+use crate::tokenize::*;
 
 pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();
@@ -60,4 +60,3 @@ fn get_top_n(mut elements: Vec<(usize, f64)>, top_n: usize) -> Vec<(usize, f64)>
     elements.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap().reverse());
     elements.into_iter().take(top_n).collect()
 }
-

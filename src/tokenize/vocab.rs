@@ -64,7 +64,7 @@ impl Vocabulary {
     }
 
     /// Writes the vocabulary to disk.
-    pub fn write_to_disk(self, path: impl AsRef<Path>) {
+    pub fn write_to_file(&self, path: impl AsRef<Path>) {
         let file = File::create(path).expect("Failed to create file");
         let writer = io::BufWriter::new(file);
         serde_json::to_writer_pretty(writer, &self.token_to_id)

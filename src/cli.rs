@@ -28,6 +28,9 @@ pub enum Commands {
     Index {
         dir_path: Option<String>,
     },
+    Status {
+        dir_path: Option<String>,
+    },
     Search {
         query: String,
         dir_path: Option<String>,
