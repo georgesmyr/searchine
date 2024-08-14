@@ -2,16 +2,11 @@ use clap::Parser;
 use std::path::PathBuf;
 
 use crate::cli::{Commands, SearchineCli};
-use crate::path::find_repo_path;
+use fingertips::path::find_repo_path;
 
 mod cli;
-mod commands;
 mod fmt;
-mod fs;
-mod index;
-mod path;
-mod scores;
-mod tokenize;
+mod commands;
 
 const SEARCHINE_PATH: &str = ".searchine";
 const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";

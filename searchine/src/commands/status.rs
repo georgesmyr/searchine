@@ -1,8 +1,8 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::fs::Directory;
-use crate::index::corpus::CorpusIndex;
+use fingertips::fs::Directory;
+use fingertips::index::corpus::CorpusIndex;
 use crate::fmt::*;
 
 use crate::commands::{fetch_modified_files, fetch_new_files, fetch_removed_files};

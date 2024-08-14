@@ -2,10 +2,10 @@ use std::collections::BTreeSet;
 use std::io;
 use std::path::Path;
 
-use crate::fs::*;
-use crate::index::corpus::*;
-use crate::index::im::*;
-use crate::tokenize::*;
+use fingertips::fs::*;
+use fingertips::index::corpus::*;
+use fingertips::index::im::*;
+use fingertips::tokenize::*;
 
 /// Indexes the documents in the corpus.
 pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::Result<()> {
@@ -22,7 +22,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::R
 
     let mut index = InMemoryIndex::new();
     for (path, _) in &corpus_index {
-        let content = crate::fs::read_to_string(&path).unwrap();
+        let content = read_to_string(&path).unwrap();
         let tokens = tokenizer.tokenize(&content);
         let mut doc_indexer = InMemoryDocumentIndexer::new();
         doc_indexer.index_tokens(tokens);

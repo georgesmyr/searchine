@@ -33,7 +33,9 @@ pub enum Commands {
     },
     Search {
         query: String,
+        #[clap(short, long)]
         dir_path: Option<String>,
+        #[clap(short, long)]
         top_n: Option<usize>,
     },
 }

@@ -2,10 +2,10 @@ use std::io;
 use std::io::Write;
 use std::path::Path;
 
-use crate::index::corpus::*;
-use crate::index::im::*;
-use crate::scores::*;
-use crate::tokenize::*;
+use fingertips::index::corpus::*;
+use fingertips::index::im::*;
+use fingertips::scores::*;
+use fingertips::tokenize::*;
 
 pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();

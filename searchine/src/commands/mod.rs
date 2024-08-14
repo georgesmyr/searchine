@@ -1,6 +1,6 @@
 use crate::fmt::{fmt_green, fmt_red};
-use crate::fs::Directory;
-use crate::index::corpus::CorpusIndex;
+use fingertips::fs::Directory;
+use fingertips::index::corpus::CorpusIndex;
 use std::io;
 use std::path::Path;
 

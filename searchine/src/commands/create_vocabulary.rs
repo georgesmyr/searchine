@@ -5,8 +5,8 @@ use std::sync::{Arc, Mutex};
 
 use rayon::prelude::*;
 
-use crate::fs::*;
-use crate::tokenize::*;
+use fingertips::fs::*;
+use fingertips::tokenize::*;
 
 /// Creates a vocabulary from a directory of documents.
 ///
@@ -38,7 +38,7 @@ pub fn invoke(
     let dir = Directory::new(base_dir)?;
     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
     dir.par_iter().for_each(|path| {
-        let content = crate::fs::read_to_string(&path).unwrap();
+        let content = read_to_string(&path).unwrap();
         let tokens = tokenizer.tokenize(&content);
         let mut vocab = vocab.lock().unwrap();
         vocab.add_tokens(&tokens);

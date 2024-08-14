@@ -4,7 +4,7 @@ use std::path::Path;
 
 use tabwriter::TabWriter;
 
-use crate::index::corpus::*;
+use fingertips::index::corpus::*;
 
 /// Lists the indexed documents in the corpus, which are listed in the
 /// corpus-index. The result is printed to the standard output as a table.

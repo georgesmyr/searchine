@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 use std::io;
 use std::path::Path;
 
-use crate::fs::*;
-use crate::index::corpus::*;
+use fingertips::fs::*;
+use fingertips::index::corpus::*;
 
 /// Indexes a corpus of documents.
 ///
