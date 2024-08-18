@@ -10,10 +10,10 @@ use std::path::Path;
 /// # Examples
 ///
 /// ```
-/// use crate::tokenize::Vocabulary;
+/// use fingertips::tokenize::Vocabulary;
 ///
 /// let mut vocab = Vocabulary::new();
-/// vocab.add_tokens(["hello".to_string(), "world".to_string()]);
+/// vocab.add_tokens([&"hello".to_string(), &"world".to_string()]);
 ///
 /// assert_eq!(vocab.get_token_id("hello"), Some(0));
 /// assert_eq!(vocab.get_token_id("world"), Some(1));
@@ -52,7 +52,7 @@ impl Vocabulary {
     }
 
     /// Adds a list of tokens to the vocabulary.
-    pub fn add_tokens<'a>(&mut self, tokens: impl IntoIterator<Item = &'a String>) {
+    pub fn add_tokens<'a>(&mut self, tokens: impl IntoIterator<Item=&'a String>) {
         for token in tokens {
             self.add_token(token);
         }

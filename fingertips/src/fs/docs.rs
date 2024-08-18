@@ -19,11 +19,11 @@ impl DocumentType {
     ///
     /// ```no_run
     /// use std::ffi::OsStr;
-    /// use fs::DocumentType;
+    /// use fingertips::fs::docs::DocumentType;
     ///
     /// let ext = OsStr::new("txt");
     /// let file_type = DocumentType::from_extension(ext);
-    /// assert_eq!(file_type, Some(FileType::Text));
+    /// assert_eq!(file_type, Some(DocumentType::Text));
     /// ```
     pub fn from_extension(ext: &OsStr) -> Option<Self> {
         match ext.to_str().unwrap() {
@@ -40,11 +40,11 @@ impl DocumentType {
     ///
     /// ```no_run
     /// use std::path::Path;
-    /// use fs::DocumentType;
+    /// use fingertips::fs::DocumentType;
     ///
     /// let path = Path::new("file.txt");
     /// let file_type = DocumentType::from_path(path);
-    /// assert_eq!(file_type, Some(FileType::Text));
+    /// assert_eq!(file_type, Some(DocumentType::Text));
     /// ```
     pub fn from_path(path: impl AsRef<Path>) -> Option<Self> {
         let extension = path.as_ref().extension();

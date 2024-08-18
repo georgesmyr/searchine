@@ -30,7 +30,8 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::R
         let document_id = corpus_index.get_document_id(&path).unwrap();
         index.insert(document_id, doc_index);
     }
-
     index.write_to_disk(repo_dir.join(index_name));
+    let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x8B]).unwrap_or_default();
+    println_bold!("{emoji} Created index for: {}", dir_path.display());
     Ok(())
 }

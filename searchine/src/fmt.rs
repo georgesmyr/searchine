@@ -1,13 +1,23 @@
-const RED_CODE: &str = "\x1b[31m";
-const GREEN_CODE: &str = "\x1b[32m";
-const RESET_CODE: &str = "\x1b[0m";
-
-/// Print text in red color.
-pub fn fmt_red(text: &str) -> String {
-    format!("{}{}{}", RED_CODE, text, RESET_CODE)
+/// Prints text in bold red.
+#[macro_export]
+macro_rules! println_red {
+    ($($arg:tt)*) => {
+        println!("\x1b[31m\x1b[1m{}\x1b[0m", format!($($arg)*));
+    };
 }
 
-/// Print text in green color.
-pub fn fmt_green(text: &str) -> String {
-    format!("{}{}{}", GREEN_CODE, text, RESET_CODE)
+/// Prints text in bold green
+#[macro_export]
+macro_rules! println_green {
+    ($($arg:tt)*) => {
+        println!("\x1b[32m\x1b[1m{}\x1b[0m", format!($($arg)*));
+    };
+}
+
+/// Prints text in bold.
+#[macro_export]
+macro_rules! println_bold {
+    ($($arg:tt)*) => {
+        println!("\x1b[1m{}\x1b[0m", format!($($arg)*));
+    };
 }

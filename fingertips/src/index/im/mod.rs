@@ -4,18 +4,13 @@ use std::collections::HashMap;
 use std::io;
 use std::path::Path;
 
+use crate::postings::*;
+
 pub use doc::{InMemoryDocumentIndex, InMemoryDocumentIndexer};
 
 /// An in-memory index for multiple documents. The index is a HashMap
 /// with the document ID as the key and an in-memory document index as
 /// the value.
-///
-/// # Examples
-///
-/// ```
-/// use crate::index::InMemoryIndex;
-/// use crate::postings::FrequencyPosting;
-/// ```
 #[derive(Debug)]
 pub struct InMemoryIndex {
     pub index: HashMap<usize, InMemoryDocumentIndex>,
@@ -70,54 +65,48 @@ impl InMemoryIndex {
     }
 }
 
-// /// An in-memory inverted index. The inverted index is a HashMap with
-// /// the term ID as the key and a postings list as the value.
-// pub struct InMemoryInvertedIndex {
-//     pub index: HashMap<usize, PostingsList<T>>,
-// }
-//
-// impl<T: Posting> InMemoryInvertedIndex<T>
-// where
-//     T: Serialize + Deserialize<'static>,
-// {
-//     /// Creates a new in-memory inverted index.
-//     pub fn new() -> Self {
-//         Self {
-//             index: HashMap::new(),
-//         }
-//     }
-//
-//     /// Inserts a document index into the in-memory inverted indexer.
-//     ///
-//     /// For each token in the document index, the method inserts the
-//     /// token into the inverted index. If the token is already in the
-//     /// index, the posting is inserted into the postings list.
-//     pub fn insert(&mut self, doc_index: InMemoryDocumentIndex) {
-//         for (token_id, posting) in doc_index {
-//             if let Some(p_list) = self.index.get_mut(&token_id) {
-//                 p_list.insert(posting);
-//             } else {
-//                 let mut p_list = PostingsList::new();
-//                 p_list.insert(posting);
-//                 self.index.insert(token_id, p_list);
-//             }
-//         }
-//     }
-//
-//     /// Returns the number of documents in the index that contain a
-//     /// specified term.
-//     pub fn n_docs_containing(&self, token_id: &usize) -> usize {
-//         self.index.get(token_id).map_or(0, |p_list| p_list.len())
-//     }
-//
-//     /// Returns the number of documents in the index.
-//     pub fn n_docs(&self) -> usize {
-//         let mut docs = BTreeSet::new();
-//         self.index.iter().for_each(|(_, p_list)| {
-//             p_list.keys().for_each(|doc_id| {
-//                 docs.insert(doc_id);
-//             });
-//         });
-//         docs.len()
-//     }
-// }
+/// An in-memory inverted index. The inverted index is a HashMap with
+/// the term ID as the key and a postings list as the value.
+pub struct InMemoryInvertedIndex {
+    index: HashMap<usize, FrequencyPostingsList>,
+    n_docs: usize,
+}
+
+impl InMemoryInvertedIndex {
+    /// Creates a new in-memory inverted index.
+    pub fn new() -> Self {
+        Self {
+            index: HashMap::new(),
+            n_docs: 0,
+        }
+    }
+
+    /// Inserts a document index into the in-memory inverted indexer.
+    ///
+    /// For each token in the document index, the method inserts the
+    /// token into the inverted index. If the token is already in the
+    /// index, the posting is inserted into the postings list.
+    pub fn insert(&mut self, doc_index: InMemoryDocumentIndex) {
+        for (token_id, token_freq) in doc_index {
+            let posting = FrequencyPosting::new(token_id, token_freq);
+            if let Some(postings_list) = self.index.get_mut(&token_id) {
+                postings_list.add(posting);
+            } else {
+                let mut postings_list = FrequencyPostingsList::new();
+                postings_list.add(posting);
+                self.index.insert(token_id, postings_list);
+            }
+        }
+    }
+
+    /// Returns the number of documents in the index that contain a
+    /// specified term.
+    pub fn n_docs_containing(&self, token_id: &usize) -> usize {
+        self.index.get(token_id).map_or(0, |p_list| p_list.len())
+    }
+
+    /// Returns the number of documents in the index.
+    pub fn n_docs(&self) -> usize {
+        self.n_docs
+    }
+}

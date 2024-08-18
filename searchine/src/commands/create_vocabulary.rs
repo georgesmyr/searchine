@@ -21,6 +21,7 @@ pub fn invoke(
     repo_dir: impl AsRef<Path>,
     vocabulary_file_name: impl AsRef<Path>,
 ) -> io::Result<Vocabulary> {
+
     // Initialize tokenizer and vocabulary.
     let tokenizer = Builder::default().build();
     let mut vocab = Arc::new(Mutex::new(Vocabulary::new()));
@@ -34,7 +35,7 @@ pub fn invoke(
             repo_dir.display()
         );
     });
-    println!("Creating vocabulary from: {}\n", base_dir.display());
+
     let dir = Directory::new(base_dir)?;
     let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
     dir.par_iter().for_each(|path| {
@@ -46,8 +47,10 @@ pub fn invoke(
 
     // Write the vocabulary to the output file.
     let output_path = repo_dir.join(vocabulary_file_name);
-    println!("\nWriting vocabulary to: {}", output_path.display());
     let vocab = Arc::try_unwrap(vocab).expect("").into_inner().unwrap();
     vocab.write_to_file(output_path);
+
+    let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x92]).unwrap_or_default();
+    println_bold!("{emoji} Created vocabulary for: {}", base_dir.display());
     Ok(vocab)
 }

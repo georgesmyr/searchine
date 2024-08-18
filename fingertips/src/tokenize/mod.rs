@@ -8,11 +8,11 @@ pub use vocab::Vocabulary;
 ///
 /// This struct is used specifically to separate text into lowercase
 /// alphanumeric terms.
-pub struct PreTokenizer;
+struct PreTokenizer;
 
 impl PreTokenizer {
     /// Creates a new pre-tokenizer
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self
     }
 
@@ -26,7 +26,7 @@ impl PreTokenizer {
     ///
     /// A `Vec<String>` containing the lowercase alphanumeric terms extracted
     /// from the input text.
-    pub fn separate_text(&self, text: impl AsRef<str>) -> Vec<String> {
+    fn separate_text(&self, text: impl AsRef<str>) -> Vec<String> {
         let text = text.as_ref();
         text.split(|c: char| !c.is_alphanumeric())
             .filter(|s| !s.is_empty())

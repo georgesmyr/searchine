@@ -1,8 +1,4 @@
-use crate::fmt::{fmt_green, fmt_red};
-use fingertips::fs::Directory;
 use fingertips::index::corpus::CorpusIndex;
-use std::io;
-use std::path::Path;
 
 pub mod create_vocabulary;
 pub mod index;

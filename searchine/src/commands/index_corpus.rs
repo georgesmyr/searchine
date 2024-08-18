@@ -25,12 +25,13 @@ pub fn invoke(
     let repo_dir = repo_dir.as_ref();
     let dir_path = repo_dir.parent().expect("Could not derive directory path.");
 
-    let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x81]).unwrap_or_default();
-    println!("{} Indexing corpus at: {}", emoji, repo_dir.display());
-
     let dir = Directory::new(dir_path)?;
     let paths = dir.iter_full_paths().collect::<BTreeSet<_>>();
     let corpus_index = CorpusIndex::from_paths(paths)?;
     corpus_index.write_to_file(repo_dir.join(corpus_index_file_name))?;
+
+    let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x9A]).unwrap_or_default();
+    println_bold!("{} Indexed corpus at: {}", emoji, repo_dir.display());
+
     Ok(())
 }

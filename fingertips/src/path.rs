@@ -11,15 +11,15 @@ use std::path::{Path, PathBuf, StripPrefixError};
 /// * `repo_path` - The path to the `.searchine` directory.
 ///
 /// # Examples
-/// ```
+/// ```no_run
 /// use std::path::Path;
-/// use crate::path::get_repo_path;
+/// use fingertips::path::find_repo_path;
 ///
 /// let target_dir = "target_dir";
 /// let dir_path = Path::new("/Users/some_user/target_dir/some_dir/");
 /// let repo_path = Path::new("/Users/some_user/target_dir/").to_path_buf();
 ///
-/// assert_eq!(get_repo_path(dir_path, target_dir), Some(repo_path));
+/// assert_eq!(find_repo_path(dir_path, target_dir), Some(repo_path));
 /// ```
 pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -> Option<PathBuf> {
     let path = std::fs::canonicalize(path).ok()?;
@@ -51,8 +51,8 @@ pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -
 /// # Examples
 ///
 /// ```
-/// use std::path::Path;
-/// use crate::path::get_relative_path;
+/// use std::path::{Path, PathBuf};
+/// use fingertips::path::get_relative_path;
 ///
 /// let base_path = Path::new("/Users/some_user/target_dir/");
 /// let path = Path::new("/Users/some_user/target_dir/some_dir/");

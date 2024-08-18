@@ -12,6 +12,7 @@ pub fn invoke(dir_path: impl AsRef<Path>, searchine_path: impl AsRef<Path>) -> i
     let index_path = dir_path.join(searchine_path);
     std::fs::create_dir_all(&index_path)?;
     let full_index_path = std::fs::canonicalize(&index_path)?;
-    println!("Index created at: {}", full_index_path.display());
+    let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x82]).unwrap_or_default();
+    println_bold!("{emoji} Index created at: {}", full_index_path.display());
     Ok(())
 }
