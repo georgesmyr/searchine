@@ -1,9 +1,9 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use fingertips::fs::Directory;
 use fingertips::index::corpus::CorpusIndex;
 
+use crate::fs::Directory;
 use crate::commands::{fetch_modified_files, fetch_new_files, fetch_removed_files};
 
 /// Checks for new files, removed files, and modified files.

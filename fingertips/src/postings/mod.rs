@@ -1,4 +1,6 @@
 pub(crate) mod freq;
+mod pos;
+
 pub(crate) use freq::{FrequencyPosting, FrequencyPostingsList};
 
 pub(crate) trait Posting {

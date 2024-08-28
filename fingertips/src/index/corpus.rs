@@ -195,37 +195,3 @@ impl<'a> IntoIterator for &'a CorpusIndex {
         self.index.iter()
     }
 }
-
-/// A struct representing an inverted corpus index.
-///
-/// This struct maps document IDs to their corresponding paths.
-pub struct InvertedCorpusIndex {
-    inner: HashMap<usize, PathBuf>,
-}
-
-impl InvertedCorpusIndex {
-    /// Creates a new InvertedCorpusIndex from a file that stores the
-    /// corpus index.
-    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
-        let corpus_index = CorpusIndex::from_file(path)?;
-        let inner = corpus_index
-            .into_iter()
-            .map(|(path, entry)| (entry.document_id, path))
-            .collect::<HashMap<usize, PathBuf>>();
-        Ok(Self { inner })
-    }
-
-    /// Retrieves the path associated with a given document ID.
-    ///
-    /// # Arguments
-    ///
-    /// * `document_id` - The unique identifier of the document.
-    ///
-    /// # Returns
-    ///
-    /// An `Option` containing a reference to the `PathBuf` if the document ID exists,
-    /// or `None` if it does not.
-    pub fn get_path(&self, document_id: usize) -> Option<&PathBuf> {
-        self.inner.get(&document_id)
-    }
-}

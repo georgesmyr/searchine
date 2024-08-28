@@ -138,11 +138,8 @@ checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
 name = "fingertips"
 version = "0.1.0"
 dependencies = [
- "rust-stemmers",
  "serde",
  "serde_json",
- "walkdir",
- "xml-rs",
 ]
 
 [[package]]
@@ -162,6 +159,13 @@ name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
+
+[[package]]
+name = "loadocs"
+version = "0.1.0"
+dependencies = [
+ "xml-rs",
+]
 
 [[package]]
 name = "memchr"
@@ -239,8 +243,11 @@ dependencies = [
  "anyhow",
  "clap",
  "fingertips",
+ "loadocs",
  "rayon",
  "tabwriter",
+ "tokenize",
+ "walkdir",
 ]
 
 [[package]]
@@ -299,6 +306,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a327282c4f64f6dc37e3bba4c2b6842cc3a992f204fa58d917696a89f691e5f6"
 dependencies = [
  "unicode-width",
+]
+
+[[package]]
+name = "tokenize"
+version = "0.1.0"
+dependencies = [
+ "rust-stemmers",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

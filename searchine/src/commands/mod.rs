@@ -1,6 +1,5 @@
 use fingertips::index::corpus::CorpusIndex;
 
-pub mod create_vocabulary;
 pub mod index;
 pub mod index_corpus;
 pub mod init;

@@ -1,10 +1,13 @@
+mod cli;
+mod fs;
+mod path;
+
 use clap::Parser;
 use std::path::PathBuf;
 
 use crate::cli::{Commands, SearchineCli};
-use fingertips::path::find_repo_path;
+use crate::path::find_repo_path;
 
-mod cli;
 
 #[macro_use]
 mod fmt;
@@ -12,7 +15,6 @@ mod commands;
 
 const SEARCHINE_PATH: &str = ".searchine";
 const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";
-const VOCABULARY_FILENAME: &str = "vocabulary.json";
 const INDEX_FILENAME: &str = "index.json";
 
 fn main() -> anyhow::Result<()> {
@@ -51,22 +53,11 @@ fn main() -> anyhow::Result<()> {
                 println_bold!("Index does not exist at: {}", dir_path.display());
             }
         }
-        Commands::CreateVocabulary { dir_path } => {
-            let dir_path = fmt_dir_path(dir_path);
-            if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                commands::create_vocabulary::invoke(repo_path, VOCABULARY_FILENAME)?;
-            } else {
-                println_bold!("Index does not exist at: {}", dir_path.display());
-            }
-        }
         Commands::Index { dir_path } => {
             let dir_path = fmt_dir_path(dir_path);
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 if !repo_path.join(CORPUS_INDEX_FILENAME).exists() {
                     let _ = commands::index_corpus::invoke(&repo_path, CORPUS_INDEX_FILENAME);
-                }
-                if !repo_path.join(VOCABULARY_FILENAME).exists() {
-                    let _ = commands::create_vocabulary::invoke(&repo_path, VOCABULARY_FILENAME);
                 }
                 commands::index::invoke(repo_path, INDEX_FILENAME)?;
             } else {

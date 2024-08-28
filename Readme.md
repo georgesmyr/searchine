@@ -1,5 +1,17 @@
 # Searchine
 
+Searchine is a simple (for now) local CLI document search engine implemented in Rust from scratch.
+The tool is planned to change in the future but currently the interface is like so:
+
+You can navigate a directory of documents you want to be indexed, and the tool creates a searchine
+index repository.
+
+```bash
+searchine index
+```
+
+the output
+
 Searchine will be a search engine from your CLI!
 
 ## Notes

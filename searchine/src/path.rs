@@ -110,14 +110,10 @@ pub fn compare_base_name(name1: &OsStr, name2: &OsStr, is_dir1: bool, is_dir2: b
     // Otherwise, if the entry is a directory add the '/' character for the sake of comparing.
     // If the entry is not a directory, then we have reached the end of the name.
     fn get_next_char(name: &[u8], is_dir: bool, len: usize) -> Option<u8> {
-        if let Some(c) = name.get(len).copied() {
-            Some(c)
-        } else {
-            if is_dir {
-                Some(b'/')
-            } else {
-                None
-            }
+        match name.get(len).copied() {
+            Some(c) => Some(c),
+            None if is_dir => Some(b'/'),
+            None => None,
         }
     }
     let c1 = get_next_char(&name1, is_dir1, common_len);

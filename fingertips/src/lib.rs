@@ -1,6 +1,5 @@
-pub mod fs;
 pub mod index;
-pub mod tokenize;
-pub mod path;
-pub mod scores;
+pub mod score;
 pub mod postings;
+pub mod doc;
+

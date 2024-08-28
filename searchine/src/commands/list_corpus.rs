@@ -25,7 +25,7 @@ pub fn invoke(
 ) -> io::Result<()> {
     let index_path = repo_dir.as_ref().join(corpus_index_file_name);
     let base_path = repo_dir.as_ref().parent().unwrap();
-    let mut corpus_index = CorpusIndex::from_file(index_path)?
+    let corpus_index = CorpusIndex::from_file(index_path)?
         .into_iter()
         .collect::<BTreeSet<_>>();
 

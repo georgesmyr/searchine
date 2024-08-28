@@ -5,7 +5,10 @@ edition = "2021"
 
 [dependencies]
 fingertips = { path = "../fingertips" }
+loadocs = { path = "../loadocs" }
+tokenize = { path = "../tokenize" }
 clap = { version = "4.5.11", features = ["derive"] }
 tabwriter = { version = "1.4.0" }
 rayon = "1.10.0"
 anyhow = "1.0.86"
+walkdir = "2.5.0"

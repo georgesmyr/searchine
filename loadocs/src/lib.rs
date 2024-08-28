@@ -19,7 +19,7 @@ impl DocumentType {
     ///
     /// ```no_run
     /// use std::ffi::OsStr;
-    /// use fingertips::fs::docs::DocumentType;
+    /// use loadocs::DocumentType;
     ///
     /// let ext = OsStr::new("txt");
     /// let file_type = DocumentType::from_extension(ext);
@@ -40,7 +40,7 @@ impl DocumentType {
     ///
     /// ```no_run
     /// use std::path::Path;
-    /// use fingertips::fs::DocumentType;
+    /// use loadocs::DocumentType;
     ///
     /// let path = Path::new("file.txt");
     /// let file_type = DocumentType::from_path(path);
@@ -90,10 +90,10 @@ fn read_xml_file(path: impl AsRef<Path>) -> std::io::Result<String> {
     let reader = BufReader::new(file);
     let er = EventReader::new(reader);
     let mut contents = String::new();
-    for event in er {
-        if let Ok(XmlEvent::Characters(string)) = event {
+    for event in er.into_iter().flatten() {
+        if let XmlEvent::Characters(string) = event {
             contents.push_str(&string);
-            contents.push_str(" ");
+            contents.push(' ');
         }
     }
     Ok(contents)
