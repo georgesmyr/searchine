@@ -26,6 +26,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::R
     let mut indexer = FrequencyIndexer::new();
     for (path, _) in &corpus_index {
         // Get document ID
+        println!("Indexing {}", path.display());
         let document_id = corpus_index
             .get_document_id(path)
             .expect("Failed to get document ID");

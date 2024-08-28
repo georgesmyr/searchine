@@ -1,11 +1,10 @@
-mod metrics;
-
+pub mod metrics;
 pub use metrics::*;
 
 use std::collections::HashMap;
 
 /// Stores the scores of each document.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DocumentsScores {
     inner: HashMap<usize, f64>,
 }
@@ -32,6 +31,13 @@ impl DocumentsScores {
     /// If the document is not present, it returns 0.0.
     pub fn get_score(&self, doc_id: usize) -> f64 {
         *self.inner.get(&doc_id).unwrap_or(&0.0)
+    }
+
+    /// Returns a vector of the documents with the top n scores. 
+    pub fn get_top_n(&self, top_n: usize) -> Vec<(&usize, &f64)> {
+        let mut elements = self.inner.iter().collect::<Vec<_>>();
+        elements.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap().reverse());
+        elements.into_iter().take(top_n).collect()
     }
 }
 

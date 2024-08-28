@@ -14,7 +14,7 @@ mod fmt;
 mod commands;
 
 const SEARCHINE_PATH: &str = ".searchine";
-const CORPUS_INDEX_FILENAME: &str = "corpus_index.json";
+const CORPUS_INDEX_FILENAME: &str = "collection.json";
 const INDEX_FILENAME: &str = "index.json";
 
 fn main() -> anyhow::Result<()> {

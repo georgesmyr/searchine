@@ -195,3 +195,23 @@ impl<'a> IntoIterator for &'a CorpusIndex {
         self.index.iter()
     }
 }
+
+pub struct InvertedCollection {
+    root_dir: PathBuf,
+    inner: HashMap<usize, PathBuf>,
+}
+
+impl InvertedCollection {
+    pub fn from_file(path: impl AsRef<Path>) -> Self {
+        let collection = CorpusIndex::from_file(path)
+            .expect("Failed to load collection from file.");
+        let inv = collection.index.iter()
+            .map(|(path, entry)| { (entry.document_id, path.clone()) })
+            .collect::<HashMap<usize, PathBuf>>();
+        InvertedCollection { root_dir: collection.root_dir, inner: inv }
+    }
+
+    pub fn get_path(&self, doc_id: usize) -> Option<&PathBuf> {
+        self.inner.get(&doc_id)
+    }
+}

@@ -5,8 +5,11 @@ pub trait Index {
     /// Returns the number of documents in the index.
     fn n_docs(&self) -> usize;
 
+    /// Returns the document IDs that contain the specified term.
+    fn doc_ids_containing(&self, term: &str) -> Vec<usize>;
+
     /// Returns the number of documents containing the specified token.
-    fn n_docs_containing(&self, token: &str) -> usize;
+    fn n_docs_containing(&self, term: &str) -> usize;
 
     /// Returns the number of terms in the document, counting the occurrence
     /// of the same term separately.

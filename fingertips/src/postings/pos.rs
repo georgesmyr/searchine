@@ -54,33 +54,38 @@ impl Hash for PositionPosting {
 }
 
 /// Structure that represents a list of frequency-postings.
+#[derive(Default)]
 pub(crate) struct PositionsPostingsList {
-    postings: HashSet<PositionPosting>,
+    inner: HashSet<PositionPosting>,
 }
 
 impl PositionsPostingsList {
     /// Creates a new empty frequency-postings list.
     pub(crate) fn new() -> Self {
-        Self {
-            postings: HashSet::new(),
-        }
+        Self::default()
     }
 }
 
 impl PostingsList<PositionPosting> for PositionsPostingsList {
     fn add(&mut self, posting: PositionPosting) {
-        self.postings.insert(posting);
+        self.inner.insert(posting);
     }
     fn remove(&mut self, doc_id: usize) {
-        self.postings.retain(|posting| posting.doc_id() != doc_id);
+        self.inner.retain(|posting| posting.doc_id() != doc_id);
     }
     fn get(&self, doc_id: usize) -> Option<&PositionPosting> {
-        self.postings.iter().find(|posting| posting.doc_id() == doc_id)
+        self.inner.iter().find(|posting| posting.doc_id() == doc_id)
     }
     fn len(&self) -> usize {
-        self.postings.len()
+        self.inner.len()
+    }
+    fn doc_ids(&self) -> Vec<usize> {
+        self.inner.iter()
+            .map(|posting| posting.doc_id())
+            .collect::<Vec<_>>()
     }
 }
+
 
 #[cfg(test)]
 mod tests {

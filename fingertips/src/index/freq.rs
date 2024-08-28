@@ -90,8 +90,16 @@ impl Index for FrequencyIndex {
         self.doc_terms_counter.n_docs()
     }
 
-    fn n_docs_containing(&self, token: &str) -> usize {
-        self.inverted_index.inner.get(token)
+    fn doc_ids_containing(&self, term: &str) -> Vec<usize> {
+        let res = self.inverted_index.inner.get(term);
+        match res {
+            Some(postings_list) => postings_list.doc_ids(),
+            _ => Vec::new()
+        }
+    }
+
+    fn n_docs_containing(&self, term: &str) -> usize {
+        self.inverted_index.inner.get(term)
             .map_or(0, |p_lst| p_lst.len())
     }
 

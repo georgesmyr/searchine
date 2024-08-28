@@ -22,4 +22,6 @@ where
     fn get(&self, doc_id: usize) -> Option<&P>;
     /// Returns the number of postings in the list.
     fn len(&self) -> usize;
+    /// Returns the document IDs
+    fn doc_ids(&self) -> Vec<usize>;
 }
