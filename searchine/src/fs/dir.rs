@@ -54,7 +54,7 @@ impl Directory {
     ///
     /// Hidden directories and files (starting with a dot `.`) are ignored,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_relative_paths(&self) -> impl Iterator<Item=PathBuf> {
+    pub fn iter_relative_paths(&self, verbose: bool) -> impl Iterator<Item=PathBuf> {
         WalkDir::new(&self.path)
             .into_iter()
             .filter_entry(|entry| !is_hidden(entry))
@@ -65,15 +65,15 @@ impl Directory {
                     None
                 }
             })
-            .filter(|path| !is_ignored(path))
+            .filter(move |path| !is_ignored(path, verbose))
     }
 
     /// Returns an iterator of the full paths to the files in the directory.
     ///
     /// Hidden directories and files (starting with a dot `.`) are ignored,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_full_paths(&self) -> impl Iterator<Item=PathBuf> {
-        self.iter_relative_paths()
+    pub fn iter_full_paths(&self, verbose: bool) -> impl Iterator<Item=PathBuf> {
+        self.iter_relative_paths(verbose)
             .filter_map(|path| path.canonicalize().ok())
     }
 
@@ -82,8 +82,8 @@ impl Directory {
     ///
     /// The directory entries are filtered by the `is_ignored` function,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_repo_paths(&self) -> impl Iterator<Item=PathBuf> + '_ {
-        self.iter_relative_paths()
+    pub fn iter_repo_paths(&self, verbose: bool) -> impl Iterator<Item=PathBuf> + '_ {
+        self.iter_relative_paths(verbose)
             .filter_map(|path| get_relative_path(&path, &self.path).ok())
     }
 }
@@ -113,13 +113,15 @@ fn is_supported_file_type(path: impl AsRef<Path>) -> bool {
 
 /// Checks if a directory entry is ignored. A directory entry is ignored if
 /// it is a directory, or an unsupported file type.
-fn is_ignored(path: impl AsRef<Path>) -> bool {
+fn is_ignored(path: impl AsRef<Path>, verbose: bool) -> bool {
     let path = path.as_ref();
     if path.is_file() {
         if is_supported_file_type(path) {
             false
         } else {
-            eprintln!("WARNING: Ignoring unsupported file: {}", path.display());
+            if verbose {
+                eprintln!("WARNING: Ignoring unsupported file: {}", path.display());
+            }
             true
         }
     } else {

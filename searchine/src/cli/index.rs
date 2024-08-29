@@ -11,7 +11,7 @@ use fingertips::inverted::freq::FrequencyIndexer;
 use fingertips::doc::freq::DocumentFrequencyIndexer;
 
 /// Indexes the documents in the corpus.
-pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::Result<()> {
+pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>, verbose: bool) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();
 
     // Instantiate tokenizer.
@@ -20,7 +20,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::R
     // Instantiate corpus index.
     let dir_path = repo_dir.parent().unwrap();
     let dir = Directory::new(dir_path)?;
-    let dir = dir.iter_full_paths().collect::<BTreeSet<_>>();
+    let dir = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
     let corpus_index = CorpusIndex::from_paths(dir)?;
 
     let mut indexer = FrequencyIndexer::new();

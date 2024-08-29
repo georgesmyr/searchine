@@ -31,7 +31,7 @@ fn main() -> anyhow::Result<()> {
         Commands::IndexCollection { dir_path } => {
             let dir_path = canonicalize_dir_path(dir_path);
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                cli::collection::index(repo_path, COLLECTION_FILENAME)?;
+                cli::collection::index(repo_path, COLLECTION_FILENAME, true)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
@@ -43,7 +43,7 @@ fn main() -> anyhow::Result<()> {
                     cli::collection::list(repo_path, COLLECTION_FILENAME)?;
                 } else {
                     println_bold!("Collection does not exist at: {}", dir_path.display());
-                    println_bold!("Run `searchine index-corpus` to create the corpus index.");
+                    println_bold!("Run `searchine index-collection` to create the collection index.");
                 }
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
@@ -53,9 +53,9 @@ fn main() -> anyhow::Result<()> {
             let dir_path = canonicalize_dir_path(dir_path);
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 if !repo_path.join(COLLECTION_FILENAME).exists() {
-                    let _ = cli::collection::index(&repo_path, COLLECTION_FILENAME);
+                    let _ = cli::collection::index(&repo_path, COLLECTION_FILENAME, false);
                 }
-                cli::index::invoke(repo_path, INDEX_FILENAME)?;
+                cli::index::invoke(repo_path, INDEX_FILENAME, true)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
@@ -63,7 +63,7 @@ fn main() -> anyhow::Result<()> {
         Commands::Status { dir_path } => {
             let dir_path = canonicalize_dir_path(dir_path);
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                cli::status::invoke(repo_path, COLLECTION_FILENAME)?;
+                cli::status::invoke(repo_path, COLLECTION_FILENAME, false)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
@@ -76,7 +76,11 @@ fn main() -> anyhow::Result<()> {
             let dir_path = canonicalize_dir_path(dir_path);
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 if !repo_path.join(INDEX_FILENAME).exists() {
-                    let _ = cli::index::invoke(&repo_path, INDEX_FILENAME);
+                    println_bold!("{} {}",
+                        "Index repository has not been indexed.",
+                        "Run `searchine index` to index the repository."
+                    );
+                    return Ok(());
                 }
                 let top_n = top_n.unwrap_or(10);
                 cli::search::invoke(repo_path, &query, top_n)?;

@@ -23,12 +23,13 @@ use crate::fs::Directory;
 pub fn index(
     repo_dir: impl AsRef<Path>,
     corpus_index_file_name: impl AsRef<Path>,
+    verbose: bool,
 ) -> io::Result<()> {
     let repo_dir = repo_dir.as_ref();
     let dir_path = repo_dir.parent().expect("Could not derive directory path.");
 
     let dir = Directory::new(dir_path)?;
-    let paths = dir.iter_full_paths().collect::<BTreeSet<_>>();
+    let paths = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
     let corpus_index = CorpusIndex::from_paths(paths)?;
     corpus_index.write_to_file(repo_dir.join(corpus_index_file_name))?;
 
