@@ -1,4 +1,3 @@
-pub mod corpus;
 pub mod freq;
 
 pub trait Index {

@@ -1,17 +1,9 @@
-use fingertips::index::corpus::CorpusIndex;
-
-pub mod index;
-pub mod index_corpus;
-pub mod init;
-pub mod list_corpus;
-pub mod search;
-pub mod status;
-
 use std::path::PathBuf;
+use fingertips::collection::CorpusIndex;
 
 /// Fetches the paths of the files that have been removed from the directory,
 /// compared to the corpus index.
-pub fn fetch_removed_files(corpus_index: &CorpusIndex, dir: &Vec<PathBuf>) -> Vec<PathBuf> {
+pub fn fetch_removed_files(corpus_index: &CorpusIndex, dir: &[PathBuf]) -> Vec<PathBuf> {
     let mut removed_paths = vec![];
     for (index_path, _) in corpus_index {
         if !dir.contains(index_path) {
@@ -23,7 +15,7 @@ pub fn fetch_removed_files(corpus_index: &CorpusIndex, dir: &Vec<PathBuf>) -> Ve
 
 /// Fetches the paths of the files that have been added to the directory,
 /// compared to the corpus index.
-pub fn fetch_new_files(corpus_index: &CorpusIndex, dir: &Vec<PathBuf>) -> Vec<PathBuf> {
+pub fn fetch_new_files(corpus_index: &CorpusIndex, dir: &[PathBuf]) -> Vec<PathBuf> {
     let mut new_paths = vec![];
     for entry in dir {
         if !corpus_index.contains_path(entry) {
@@ -35,7 +27,7 @@ pub fn fetch_new_files(corpus_index: &CorpusIndex, dir: &Vec<PathBuf>) -> Vec<Pa
 
 /// Fetches the paths of the files that have been modified in the directory,
 /// compared to the corpus index.
-pub fn fetch_modified_files(corpus_index: &CorpusIndex, dir: &Vec<PathBuf>) -> Vec<PathBuf> {
+pub fn fetch_modified_files(corpus_index: &CorpusIndex, dir: &[PathBuf]) -> Vec<PathBuf> {
     let mut modified_paths = vec![];
     for path in dir {
         if corpus_index.contains_path(path) {

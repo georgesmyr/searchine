@@ -2,9 +2,9 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use tokenize::{Tokenizer, TokenCounts};
-use fingertips::index::corpus::InvertedCollection;
-use fingertips::index::freq::FrequencyIndex;
-use fingertips::index::Index;
+use fingertips::collection::InvertedCollection;
+use fingertips::inverted::freq::FrequencyIndex;
+use fingertips::inverted::Index;
 use fingertips::score::*;
 
 

@@ -1,9 +1,19 @@
-use clap;
+pub mod index;
+pub mod init;
+pub mod search;
+pub mod status;
+pub mod collection;
+pub mod utils;
+
+use std::path::PathBuf;
+
+use fingertips::collection::CorpusIndex;
+
 
 #[derive(clap::Parser)]
 #[clap(
     name = "searchine",
-    version = "0.1.0",
+    version = "0.1.1",
     about = "A simple local search engine."
 )]
 pub struct SearchineCli {
@@ -16,10 +26,10 @@ pub enum Commands {
     Init {
         dir_path: Option<String>,
     },
-    IndexCorpus {
+    IndexCollection {
         dir_path: Option<String>,
     },
-    ListCorpus {
+    ListCollection {
         dir_path: Option<String>,
     },
     Index {
@@ -36,3 +46,4 @@ pub enum Commands {
         top_n: Option<usize>,
     },
 }
+

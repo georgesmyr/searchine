@@ -1,10 +1,10 @@
 use std::io;
 use std::path::{Path, PathBuf};
 
-use fingertips::index::corpus::CorpusIndex;
+use fingertips::collection::CorpusIndex;
 
 use crate::fs::Directory;
-use crate::commands::{fetch_modified_files, fetch_new_files, fetch_removed_files};
+use crate::cli::utils::{fetch_modified_files, fetch_new_files, fetch_removed_files};
 
 /// Checks for new files, removed files, and modified files.
 pub fn invoke(repo_path: impl AsRef<Path>, index_file_name: &str) -> io::Result<()> {

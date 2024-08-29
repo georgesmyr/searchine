@@ -36,6 +36,15 @@ pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -
     None
 }
 
+/// Formats the directory path that is optionally specified.
+/// If the path is specified, it is canonicalized and returned.
+/// If the path is not specified, the current directory is
+/// canonicalized and returned.
+pub fn canonicalize_dir_path(dir_path: Option<String>) -> PathBuf {
+    let dir_path = dir_path.unwrap_or(".".to_string());
+    std::fs::canonicalize(dir_path).expect("Failed to canonicalize the specified path.")
+}
+
 /// Returns the relative path of `path` relative to `base_path`.
 ///
 /// # Arguments

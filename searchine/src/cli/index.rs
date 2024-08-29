@@ -6,8 +6,8 @@ use tokenize::Tokenizer;
 use loadocs::read_to_string;
 
 use crate::fs::*;
-use fingertips::index::corpus::*;
-use fingertips::index::freq::FrequencyIndexer;
+use fingertips::collection::*;
+use fingertips::inverted::freq::FrequencyIndexer;
 use fingertips::doc::freq::DocumentFrequencyIndexer;
 
 /// Indexes the documents in the corpus.
@@ -26,7 +26,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>) -> io::R
     let mut indexer = FrequencyIndexer::new();
     for (path, _) in &corpus_index {
         // Get document ID
-        println!("Indexing {}", path.display());
+        // println!("Indexing {}", path.display());
         let document_id = corpus_index
             .get_document_id(path)
             .expect("Failed to get document ID");

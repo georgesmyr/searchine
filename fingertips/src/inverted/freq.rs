@@ -9,7 +9,7 @@ use serde_json;
 use crate::doc::{DocumentTermsCounterBuilder, DocumentTermsCounter};
 use crate::doc::freq::DocumentFrequencyIndex;
 use crate::postings::*;
-use crate::index::Index;
+use crate::inverted::Index;
 
 /// Builder for inverted index with frequency postings.
 #[derive(Default)]
