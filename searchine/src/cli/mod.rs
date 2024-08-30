@@ -5,11 +5,6 @@ pub mod status;
 pub mod collection;
 pub mod utils;
 
-use std::path::PathBuf;
-
-use fingertips::collection::CorpusIndex;
-
-
 #[derive(clap::Parser)]
 #[clap(
     name = "searchine",

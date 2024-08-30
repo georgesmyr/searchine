@@ -8,7 +8,7 @@ use fingertips::inverted::Index;
 use fingertips::score::*;
 
 
-pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> io::Result<()> {
+pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> anyhow::Result<()> {
     let repo_dir = repo_dir.as_ref();
 
     // Instantiate tokenizer.
@@ -33,7 +33,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> io::Resu
     println!("{:?}", top_n_results);
 
     let collection_path = repo_dir.join("collection.json");
-    let inv_collection = InvertedCollection::from_file(collection_path);
+    let inv_collection = InvertedCollection::from_file(collection_path)?;
     let top_n_results = top_n_results
         .iter()
         .map(|(doc_id, score)| (inv_collection.get_path(**doc_id).unwrap(), *score))

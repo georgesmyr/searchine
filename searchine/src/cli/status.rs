@@ -37,7 +37,7 @@ pub fn invoke(
 
     // Get the paths that are both in the directory and in the index,
     // but they have different modified times.
-    let modified_paths = fetch_modified_files(&corpus_index, &dir);
+    let modified_paths = fetch_modified_files(&corpus_index, &dir)?;
 
     // Display updates
     if new_paths.is_empty() && removed_paths.is_empty() && modified_paths.is_empty() {

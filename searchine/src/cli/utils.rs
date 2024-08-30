@@ -1,4 +1,7 @@
 use std::path::PathBuf;
+
+use anyhow::Context;
+
 use fingertips::collection::CorpusIndex;
 
 /// Fetches the paths of the files that have been removed from the directory,
@@ -27,27 +30,28 @@ pub fn fetch_new_files(corpus_index: &CorpusIndex, dir: &[PathBuf]) -> Vec<PathB
 
 /// Fetches the paths of the files that have been modified in the directory,
 /// compared to the corpus index.
-pub fn fetch_modified_files(corpus_index: &CorpusIndex, dir: &[PathBuf]) -> Vec<PathBuf> {
+pub fn fetch_modified_files(
+    corpus_index: &CorpusIndex,
+    dir: &[PathBuf],
+) -> anyhow::Result<Vec<PathBuf>> {
     let mut modified_paths = vec![];
     for path in dir {
         if corpus_index.contains_path(path) {
             let metadata = path
                 .metadata()
-                .expect(format!("Failed to get metadata for: {}.", path.display()).as_str());
-            let current_modified = metadata.modified().expect(
-                format!("Failed to get last modified time for: {}.", path.display()).as_str(),
-            );
-            let index_modified = corpus_index.get_last_modified(path).expect(
-                format!(
-                    "Failed to get last modified time for: {} from the index.",
-                    path.display()
-                )
-                    .as_str(),
-            );
+                .context(format!("Failed to get metadata for: {}.", path.display()))?;
+            let current_modified = metadata.modified().context(format!(
+                "Failed to get last modified time for: {}.",
+                path.display()
+            ))?;
+            let index_modified = corpus_index.get_last_modified(path).context(format!(
+                "Failed to get last modified time for: {} from the index.",
+                path.display()
+            ))?;
             if current_modified > index_modified {
                 modified_paths.push(path.clone());
             }
         }
     }
-    modified_paths
+    Ok(modified_paths)
 }

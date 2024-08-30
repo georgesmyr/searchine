@@ -2,6 +2,8 @@ use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf, StripPrefixError};
 
+use anyhow::Context;
+
 /// Checks if a directory is contained in a directory with specified name.
 /// If it is, returns the path to the repo. Otherwise, returns `None`.
 ///
@@ -24,12 +26,12 @@ use std::path::{Path, PathBuf, StripPrefixError};
 pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -> Option<PathBuf> {
     let path = std::fs::canonicalize(path).ok()?;
     let mut path = path.as_path();
-    if dir_contains(&path, &repo_dir_name) {
+    if dir_contains(path, &repo_dir_name) {
         return Some(path.join(repo_dir_name));
     }
     while let Some(parent) = path.parent() {
         path = parent;
-        if dir_contains(&path, &repo_dir_name) {
+        if dir_contains(path, &repo_dir_name) {
             return Some(path.join(repo_dir_name));
         }
     }
@@ -40,9 +42,9 @@ pub fn find_repo_path(path: impl AsRef<Path>, repo_dir_name: impl AsRef<Path>) -
 /// If the path is specified, it is canonicalized and returned.
 /// If the path is not specified, the current directory is
 /// canonicalized and returned.
-pub fn canonicalize_dir_path(dir_path: Option<String>) -> PathBuf {
+pub fn canonicalize_dir_path(dir_path: Option<String>) -> anyhow::Result<PathBuf> {
     let dir_path = dir_path.unwrap_or(".".to_string());
-    std::fs::canonicalize(dir_path).expect("Failed to canonicalize the specified path.")
+    std::fs::canonicalize(dir_path).context("Failed to canonicalize the specified path.")
 }
 
 /// Returns the relative path of `path` relative to `base_path`.
@@ -125,8 +127,8 @@ pub fn compare_base_name(name1: &OsStr, name2: &OsStr, is_dir1: bool, is_dir2: b
             None => None,
         }
     }
-    let c1 = get_next_char(&name1, is_dir1, common_len);
-    let c2 = get_next_char(&name2, is_dir2, common_len);
+    let c1 = get_next_char(name1, is_dir1, common_len);
+    let c2 = get_next_char(name2, is_dir2, common_len);
     c1.cmp(&c2)
 }
 

@@ -36,7 +36,7 @@ impl DocumentsScores {
     /// Returns a vector of the documents with the top n scores. 
     pub fn get_top_n(&self, top_n: usize) -> Vec<(&usize, &f64)> {
         let mut elements = self.inner.iter().collect::<Vec<_>>();
-        elements.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap().reverse());
+        elements.sort_by(|a, b| a.1.partial_cmp(b.1).unwrap().reverse());
         elements.into_iter().take(top_n).collect()
     }
 }

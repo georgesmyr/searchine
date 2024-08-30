@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 use std::io::{self, Write};
 use std::path::Path;
 
+use anyhow::Context;
 use tabwriter::TabWriter;
 use fingertips::collection::*;
 
@@ -24,9 +25,9 @@ pub fn index(
     repo_dir: impl AsRef<Path>,
     corpus_index_file_name: impl AsRef<Path>,
     verbose: bool,
-) -> io::Result<()> {
+) -> anyhow::Result<()> {
     let repo_dir = repo_dir.as_ref();
-    let dir_path = repo_dir.parent().expect("Could not derive directory path.");
+    let dir_path = repo_dir.parent().context("Could not derive directory path.")?;
 
     let dir = Directory::new(dir_path)?;
     let paths = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
@@ -57,7 +58,7 @@ pub fn list(
     corpus_index_file_name: impl AsRef<Path>,
 ) -> io::Result<()> {
     let index_path = repo_dir.as_ref().join(corpus_index_file_name);
-    let base_path = repo_dir.as_ref().parent().unwrap();
+    // let base_path = repo_dir.as_ref().parent().unwrap();
     let corpus_index = CorpusIndex::from_file(index_path)?
         .into_iter()
         .collect::<BTreeSet<_>>();
@@ -65,15 +66,13 @@ pub fn list(
     // Print out the indexed documents.
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x9A]).unwrap_or_default();
     println!(
-        "{} Documents in the corpus: {}\n",
-        emoji,
+        "{emoji} Documents in the corpus: {}\n",
         corpus_index.len()
     );
     let mut tab_writer = TabWriter::new(io::stdout());
     _ = writeln!(
         tab_writer,
-        "\t{}\t{}\t{}",
-        "Path", "Document ID", "Last Modified"
+        "\tPath\tDocument ID\tLast Modified",
     );
     for (path, entry) in corpus_index {
         _ = writeln!(

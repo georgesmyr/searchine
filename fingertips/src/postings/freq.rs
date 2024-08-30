@@ -20,11 +20,6 @@ impl FrequencyPosting {
     pub fn new(doc_id: usize, frequency: usize) -> Self {
         Self { doc_id, frequency }
     }
-
-    /// Adds an occurrence of the term in the document.
-    fn add_occurrence(&mut self) {
-        self.frequency += 1;
-    }
 }
 
 impl Posting for FrequencyPosting {

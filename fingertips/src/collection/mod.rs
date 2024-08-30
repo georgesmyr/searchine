@@ -5,6 +5,7 @@ use std::io::{self, BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
+use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
 /// A struct representing an entry in the corpus index.
@@ -202,13 +203,13 @@ pub struct InvertedCollection {
 }
 
 impl InvertedCollection {
-    pub fn from_file(path: impl AsRef<Path>) -> Self {
+    pub fn from_file(path: impl AsRef<Path>) -> anyhow::Result<Self> {
         let collection = CorpusIndex::from_file(path)
-            .expect("Failed to load collection from file.");
+            .context("Failed to load collection from file.")?;
         let inv = collection.index.iter()
             .map(|(path, entry)| { (entry.document_id, path.clone()) })
             .collect::<HashMap<usize, PathBuf>>();
-        InvertedCollection { root_dir: collection.root_dir, inner: inv }
+        Ok(InvertedCollection { root_dir: collection.root_dir, inner: inv })
     }
 
     pub fn get_path(&self, doc_id: usize) -> Option<&PathBuf> {

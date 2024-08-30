@@ -1,15 +1,16 @@
 use std::collections::HashMap;
-use std::path::Path;
 use std::fs;
 use std::io;
+use std::path::Path;
 
-use serde::{Serialize, Deserialize};
+use anyhow::Context;
+use serde::{Deserialize, Serialize};
 use serde_json;
 
-use crate::doc::{DocumentTermsCounterBuilder, DocumentTermsCounter};
 use crate::doc::freq::DocumentFrequencyIndex;
-use crate::postings::*;
+use crate::doc::{DocumentTermsCounter, DocumentTermsCounterBuilder};
 use crate::inverted::Index;
+use crate::postings::*;
 
 /// Builder for inverted index with frequency postings.
 #[derive(Default)]
@@ -66,7 +67,8 @@ impl FrequencyIndexer {
 
     /// Indexes a document index with frequency postings.
     pub fn index(&mut self, doc_index: DocumentFrequencyIndex) {
-        self.counter_builder.insert_doc_terms(doc_index.doc_id(), doc_index.n_terms());
+        self.counter_builder
+            .insert_doc_terms(doc_index.doc_id(), doc_index.n_terms());
         self.inverted_indexer.index(doc_index);
     }
 
@@ -94,12 +96,14 @@ impl Index for FrequencyIndex {
         let res = self.inverted_index.inner.get(term);
         match res {
             Some(postings_list) => postings_list.doc_ids(),
-            _ => Vec::new()
+            _ => Vec::new(),
         }
     }
 
     fn n_docs_containing(&self, term: &str) -> usize {
-        self.inverted_index.inner.get(term)
+        self.inverted_index
+            .inner
+            .get(term)
             .map_or(0, |p_lst| p_lst.len())
     }
 
@@ -115,27 +119,33 @@ impl Index for FrequencyIndex {
 }
 
 impl FrequencyIndex {
-    pub fn to_file(self, path: impl AsRef<Path>) -> serde_json::error::Result<()> {
+    /// Writes inverted index with frequency postings to file.
+    pub fn to_file(self, path: impl AsRef<Path>) -> anyhow::Result<()> {
         let path = path.as_ref();
-        let file = fs::File::create(path)
-            .expect(format!("Failed to create index file at: {}", path.display()).as_str());
+        let file = fs::File::create(path).context(format!(
+            "Failed to create index file at: {}",
+            path.display()
+        ))?;
         let writer = io::BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, &self)
+        serde_json::to_writer_pretty(writer, &self).context("Failed to write index to writer.")
     }
 
-    pub fn from_file(path: impl AsRef<Path>) -> serde_json::error::Result<Self> {
+    /// Loads inverted index with frequency postings from file.
+    pub fn from_file(path: impl AsRef<Path>) -> anyhow::Result<Self> {
         let path = path.as_ref();
-        let file = fs::File::open(path)
-            .expect(format!("Failed to open file at: {}", path.display()).as_str());
+        let file =
+            fs::File::open(path).context(format!("Failed to open file at: {}", path.display()))?;
         let reader = io::BufReader::new(file);
-        serde_json::from_reader(reader)
+        serde_json::from_reader(reader).context(format!(
+            "Failed to read index from file: {}",
+            path.display()
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::doc::freq;
     use crate::doc::freq::DocumentFrequencyIndexer;
 
     #[test]
@@ -151,11 +161,7 @@ mod tests {
         doc_indexer_1.index_tokens(tokens_1);
         let doc_index_1 = doc_indexer_1.build();
 
-        let tokens_2 = vec![
-            "this".to_string(),
-            "is".to_string(),
-            "new".to_string(),
-        ];
+        let tokens_2 = vec!["this".to_string(), "is".to_string(), "new".to_string()];
         let mut doc_indexer_2 = DocumentFrequencyIndexer::new(1);
         doc_indexer_2.index_tokens(tokens_2);
         let doc_index_2 = doc_indexer_2.build();
