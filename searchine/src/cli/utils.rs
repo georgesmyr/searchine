@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 
-use fingertips::collection::CorpusIndex;
+use index::collection::CorpusIndex;
 
 /// Fetches the paths of the files that have been removed from the directory,
 /// compared to the corpus index.

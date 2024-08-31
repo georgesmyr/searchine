@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-fingertips = { path = "../fingertips" }
+index = { path = "../index" }
 loadocs = { path = "../loadocs" }
 tokenize = { path = "../tokenize" }
 clap = { version = "4.5.11", features = ["derive"] }

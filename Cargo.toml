@@ -1,4 +1,4 @@
 [workspace]
-members = ["searchine", "fingertips", "loadocs", "tokenize"]
+members = ["searchine", "index", "loadocs", "tokenize"]
 
 resolver = "2"

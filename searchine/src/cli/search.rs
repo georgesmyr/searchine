@@ -2,10 +2,10 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use tokenize::{Tokenizer, TokenCounts};
-use fingertips::collection::InvertedCollection;
-use fingertips::inverted::freq::FrequencyIndex;
-use fingertips::inverted::Index;
-use fingertips::score::*;
+use index::collection::InvertedCollection;
+use index::inverted::freq::FrequencyIndex;
+use index::inverted::Index;
+use index::score::*;
 
 
 pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: usize) -> anyhow::Result<()> {

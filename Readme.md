@@ -16,6 +16,11 @@ Searchine will be a search engine from your CLI!
 
 ## Notes
 
+### Document Loading
+
+- [ ] Add parsers
+- [ ] Parse into documents
+
 ### Query processing
 
 - [ ] Tokenization
@@ -27,7 +32,6 @@ Searchine will be a search engine from your CLI!
 
 ### Inverted index & Postings
 
-- [x] Vocabulary
 - [x] Postings
 - [ ] Vectors vs Singly linked lists for postings
 - [ ] Postings: doc_id and term_freq as usize or u32?

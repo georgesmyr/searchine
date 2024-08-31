@@ -2,19 +2,19 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-/// A struct representing an in-memory document indexer.
+/// A struct representing an in-memory document frequency index.
 ///
-/// This struct is used to index tokens for a single document, identified by `doc_id`.
-/// The index is stored in memory and can be finalized to an `InMemoryDocumentIndex`.
-pub struct DocumentFrequencyIndexer {
-    /// Count of the total number of terms in the document.
-    n_terms: usize,
+/// This struct is used to store the postings of a single document.
+/// Each term in the document is associated with a frequency, which
+/// is the number of times the term appears in the document.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DocumentFrequencyIndex {
     id: usize,
+    n_terms: usize,
     index: HashMap<String, usize>,
 }
 
-impl DocumentFrequencyIndexer {
-    /// Creates new indexer for document with specified document ID.
+impl DocumentFrequencyIndex {
     pub fn new(id: usize) -> Self {
         Self {
             n_terms: 0,
@@ -25,8 +25,8 @@ impl DocumentFrequencyIndexer {
 
     /// Adds a token to the index.
     ///
-    /// If the token is already in the index, the frequency count is incremented.
-    /// Otherwise, a new posting is created.
+    /// If the token is already in the index, the frequency count is
+    /// incremented by one. Otherwise, a new posting is created.
     fn add_token(&mut self, token: String) {
         self.n_terms += 1;
         if let Some(posting) = self.index.get_mut(&token) {
@@ -36,36 +36,13 @@ impl DocumentFrequencyIndexer {
         }
     }
 
-    /// Indexes a list of tokens.
+    /// Indexes an iterator of tokens.
     pub fn index_tokens(&mut self, tokens: impl IntoIterator<Item=String>) {
         for token in tokens {
             self.add_token(token);
         }
     }
 
-    /// Builds the index.
-    pub fn build(self) -> DocumentFrequencyIndex {
-        DocumentFrequencyIndex {
-            n_terms: self.n_terms,
-            id: self.id,
-            index: self.index,
-        }
-    }
-}
-
-/// A struct representing an in-memory document index.
-///
-/// This struct is used to store the postings of a single document, i.e.
-/// for the same document, each term in the document  is associated with
-/// a posting, which is the frequency of the word in the document.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct DocumentFrequencyIndex {
-    id: usize,
-    n_terms: usize,
-    index: HashMap<String, usize>,
-}
-
-impl DocumentFrequencyIndex {
     /// Returns the ID of the document that the document index is
     /// referring to.
     pub fn doc_id(&self) -> usize {

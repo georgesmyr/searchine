@@ -146,7 +146,7 @@ impl FrequencyIndex {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::doc::freq::DocumentFrequencyIndexer;
+    use crate::doc::freq::DocumentFrequencyIndex;
 
     #[test]
     fn test_frequency_indexing() {
@@ -157,14 +157,12 @@ mod tests {
             "this".to_string(),
             "rocks".to_string(),
         ];
-        let mut doc_indexer_1 = DocumentFrequencyIndexer::new(0);
-        doc_indexer_1.index_tokens(tokens_1);
-        let doc_index_1 = doc_indexer_1.build();
+        let mut doc_index_1 = DocumentFrequencyIndex::new(0);
+        doc_index_1.index_tokens(tokens_1);
 
         let tokens_2 = vec!["this".to_string(), "is".to_string(), "new".to_string()];
-        let mut doc_indexer_2 = DocumentFrequencyIndexer::new(1);
-        doc_indexer_2.index_tokens(tokens_2);
-        let doc_index_2 = doc_indexer_2.build();
+        let mut doc_index_2 = DocumentFrequencyIndex::new(1);
+        doc_index_2.index_tokens(tokens_2);
 
         let mut indexer = FrequencyIndexer::new();
         indexer.index(doc_index_1);

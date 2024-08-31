@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use fingertips::collection::CorpusIndex;
+use index::collection::CorpusIndex;
 
 use crate::cli::utils::{fetch_modified_files, fetch_new_files, fetch_removed_files};
 use crate::fs::Directory;

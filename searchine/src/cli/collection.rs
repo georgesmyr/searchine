@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::Context;
 use tabwriter::TabWriter;
-use fingertips::collection::*;
+use index::collection::*;
 
 use crate::fs::Directory;
 

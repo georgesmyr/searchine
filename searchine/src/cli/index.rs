@@ -5,9 +5,9 @@ use anyhow::Context;
 
 use tokenize::Tokenizer;
 use loadocs::read_to_string;
-use fingertips::collection::*;
-use fingertips::inverted::freq::FrequencyIndexer;
-use fingertips::doc::freq::DocumentFrequencyIndexer;
+use index::collection::*;
+use index::inverted::freq::FrequencyIndexer;
+use index::doc::freq::DocumentFrequencyIndex;
 
 use crate::fs::*;
 
@@ -36,10 +36,9 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>, verbose:
         // Tokenize document
         let tokens = tokenizer.tokenize(&content);
         // Instantiate a document indexer with specified document ID, and index tokens
-        let mut doc_indexer = DocumentFrequencyIndexer::new(document_id);
-        doc_indexer.index_tokens(tokens);
+        let mut doc_index = DocumentFrequencyIndex::new(document_id);
+        doc_index.index_tokens(tokens);
         // Build document index
-        let doc_index = doc_indexer.build();
         // Include the document index
         indexer.index(doc_index);
     }
