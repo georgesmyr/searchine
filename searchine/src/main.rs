@@ -55,7 +55,7 @@ fn main() -> anyhow::Result<()> {
                 if !repo_path.join(COLLECTION_FILENAME).exists() {
                     let _ = cli::collection::index(&repo_path, COLLECTION_FILENAME, false);
                 }
-                cli::index::invoke(repo_path, INDEX_FILENAME, true)?;
+                cli::index::invoke_par(repo_path, INDEX_FILENAME, true)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
