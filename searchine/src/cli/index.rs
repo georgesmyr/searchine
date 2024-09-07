@@ -1,30 +1,40 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
-use std::sync::Arc;
 use std::thread;
 
 use anyhow::Context;
 
-use tokenize::Tokenizer;
-use loadocs::read_to_string;
 use index::collection::*;
-use index::inverted::freq::{FrequencyIndex, FrequencyIndexer};
 use index::doc::freq::DocumentFrequencyIndex;
+use index::inverted::freq::FrequencyIndexer;
+
+use loadocs::document::*;
+use loadocs::read_to_string;
+
+use tokenize::Tokenizer;
 
 use crate::fs::*;
 
-const CHANNEL_BOUND: usize = 64;
+type Tokens = (usize, Vec<String>);
+
+const CHANNEL_BOUND: usize = 1024;
 
 /// Indexes the documents in the corpus.
-pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>, verbose: bool) -> anyhow::Result<()> {
+pub fn invoke(
+    repo_dir: impl AsRef<Path>,
+    index_name: impl AsRef<Path>,
+    verbose: bool,
+) -> anyhow::Result<()> {
     let repo_dir = repo_dir.as_ref();
 
     // Instantiate tokenizer.
     let tokenizer = Tokenizer::default();
 
     // Instantiate corpus index.
-    let dir_path = repo_dir.parent().context(format!("Failed to get parent for: {}", repo_dir.display()))?;
+    let dir_path = repo_dir
+        .parent()
+        .context(format!("Failed to get parent for: {}", repo_dir.display()))?;
     let dir = Directory::new(dir_path)?;
     let dir = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
     let corpus_index = CorpusIndex::from_paths(dir)?;
@@ -55,12 +65,29 @@ pub fn invoke(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>, verbose:
     Ok(())
 }
 
-fn load_docs(paths: BTreeSet<PathBuf>) -> (mpsc::Receiver<String>, thread::JoinHandle<anyhow::Result<()>>) {
+/// Part of a pipeline that loads documents.
+fn load_docs<I>(
+    paths: I,
+    collection: CorpusIndex,
+) -> (
+    mpsc::Receiver<Document>,
+    thread::JoinHandle<anyhow::Result<()>>,
+)
+where
+    I: IntoIterator<Item=PathBuf> + Send + 'static,
+{
     let (sender, receiver) = mpsc::sync_channel(CHANNEL_BOUND);
     let handle = thread::spawn(move || {
         for path in paths {
-            let content = read_to_string(&path).context("Failed to parse document.")?;
-            if sender.send(content).is_err() {
+            // For each path, we map it to a document id with the collection index,
+            // and load the document from file.
+            let doc_id = collection
+                .get_document_id(&path)
+                .context(format!("Document {} is not in collection.", path.display()))?;
+            println!("Loading document: {}", path.display());
+            let document = Document::from_file(doc_id, &path)?;
+
+            if sender.send(document).is_err() {
                 eprintln!("Failed to read from {}", path.display());
             }
         }
@@ -69,15 +96,22 @@ fn load_docs(paths: BTreeSet<PathBuf>) -> (mpsc::Receiver<String>, thread::JoinH
     (receiver, handle)
 }
 
-fn tokenize_content(content_receiver: mpsc::Receiver<String>)
-                    -> (mpsc::Receiver<Vec<String>>, thread::JoinHandle<anyhow::Result<()>>) {
+fn tokenize_content(
+    document_receiver: mpsc::Receiver<Document>,
+) -> (
+    mpsc::Receiver<Tokens>,
+    thread::JoinHandle<anyhow::Result<()>>,
+) {
     let (sender, receiver) = mpsc::sync_channel(CHANNEL_BOUND);
     let tokenizer = Tokenizer::default();
     let handle = thread::spawn(move || {
-        for content in content_receiver {
-            let tokens = tokenizer.tokenize(&content);
+        for document in document_receiver {
+            let tokens = (
+                document.doc_id(),
+                tokenizer.tokenize(document.page_content()),
+            );
             if sender.send(tokens).is_err() {
-                eprintln!("Failed to tokenize text {}", content);
+                eprintln!("Failed to tokenize document {}", document.doc_id());
             }
         }
         Ok(())
@@ -85,10 +119,15 @@ fn tokenize_content(content_receiver: mpsc::Receiver<String>)
     (receiver, handle)
 }
 
-fn index_documents(tokens_receiver: mpsc::Receiver<Vec<String>>) -> (mpsc::Receiver<DocumentFrequencyIndex>, thread::JoinHandle<anyhow::Result<()>>) {
+fn index_documents(
+    tokens_receiver: mpsc::Receiver<(usize, Vec<String>)>,
+) -> (
+    mpsc::Receiver<DocumentFrequencyIndex>,
+    thread::JoinHandle<anyhow::Result<()>>,
+) {
     let (sender, receiver) = mpsc::sync_channel(CHANNEL_BOUND);
     let handle = thread::spawn(move || {
-        for (doc_id, tokens) in tokens_receiver.iter().enumerate() {
+        for (doc_id, tokens) in tokens_receiver {
             let mut doc_index = DocumentFrequencyIndex::new(doc_id);
             doc_index.index_tokens(tokens);
 
@@ -101,18 +140,24 @@ fn index_documents(tokens_receiver: mpsc::Receiver<Vec<String>>) -> (mpsc::Recei
     (receiver, handle)
 }
 
-pub fn invoke_par(repo_dir: impl AsRef<Path>, index_name: impl AsRef<Path>, verbose: bool) -> anyhow::Result<()> {
+pub fn invoke_par(
+    repo_dir: impl AsRef<Path>,
+    index_name: impl AsRef<Path>,
+    verbose: bool,
+) -> anyhow::Result<()> {
     // Get all paths
     let repo_dir = repo_dir.as_ref();
-    let dir_path = repo_dir.parent().context(format!("Failed to get parent for: {}", repo_dir.display()))?;
+    let dir_path = repo_dir
+        .parent()
+        .context(format!("Failed to get parent for: {}", repo_dir.display()))?;
     let dir = Directory::new(dir_path)?;
     let dir = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
 
     // // This is indexing collection from the scratch?
-    // let corpus_index = CorpusIndex::from_paths(dir.clone())?;
+    let collection = CorpusIndex::from_paths(dir.clone())?;
 
-    let (content_receiver, h1) = load_docs(dir);
-    let (token_receiver, h2) = tokenize_content(content_receiver);
+    let (doc_receiver, h1) = load_docs(dir, collection);
+    let (token_receiver, h2) = tokenize_content(doc_receiver);
     let (doc_index_receiver, h3) = index_documents(token_receiver);
     let mut indexer = FrequencyIndexer::new();
     for doc_index in doc_index_receiver {
