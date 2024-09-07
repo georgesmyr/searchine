@@ -174,7 +174,7 @@ impl CorpusIndex {
         let path = path.as_ref();
         let file = File::create(path)?;
         let writer = BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, self)?;
+        serde_json::to_writer(writer, self)?;
         Ok(())
     }
 }

@@ -120,14 +120,14 @@ impl Index for FrequencyIndex {
 
 impl FrequencyIndex {
     /// Writes inverted index with frequency postings to file.
-    pub fn to_file(self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+    pub fn write_to_file(self, path: impl AsRef<Path>) -> anyhow::Result<()> {
         let path = path.as_ref();
         let file = fs::File::create(path).context(format!(
             "Failed to create index file at: {}",
             path.display()
         ))?;
         let writer = io::BufWriter::new(file);
-        serde_json::to_writer_pretty(writer, &self).context("Failed to write index to writer.")
+        serde_json::to_writer(writer, &self).context("Failed to write index to writer.")
     }
 
     /// Loads inverted index with frequency postings from file.

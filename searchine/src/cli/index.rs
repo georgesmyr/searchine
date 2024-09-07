@@ -59,7 +59,7 @@ pub fn invoke(
 
     // Build index and store it to file.
     let index = indexer.build();
-    index.to_file(repo_dir.join(index_name))?;
+    index.write_to_file(repo_dir.join(index_name))?;
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x8B]).unwrap_or_default();
     println_bold!("{emoji} Created index for: {}", dir_path.display());
     Ok(())
@@ -174,7 +174,7 @@ pub fn invoke_par(
 
     // Build index and store it to file.
     let index = indexer.build();
-    index.to_file(repo_dir.join(index_name))?;
+    index.write_to_file(repo_dir.join(index_name))?;
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x8B]).unwrap_or_default();
     println_bold!("{emoji} Created index for: {}", dir_path.display());
 
