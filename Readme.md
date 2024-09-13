@@ -14,11 +14,18 @@ the output
 
 Searchine will be a search engine from your CLI!
 
-## Notes
+## Bugs
+
+- [ ] Fix the document ids in the index to match the document ids in the collection.
+
+## TODOs
 
 ### Document Loading
 
 - [ ] Add parsers
+    - [ ] XML
+    - [ ] PDF
+    - [ ] Text (txt, md)
 - [ ] Parse into documents
 
 ### Query processing
@@ -35,6 +42,20 @@ Searchine will be a search engine from your CLI!
 - [x] Postings
 - [ ] Vectors vs Singly linked lists for postings
 - [ ] Postings: doc_id and term_freq as usize or u32?
+- [ ] Indexing pipeline channels
+- [ ] Pipeline with synchronous channels
+- [ ] Return references, i.e. &str or &[T], to avoid heap allocations.
+
+### Encoding
+
+- [ ] VBEncoding
+    - [ ] Estimate the necessary capacity of vector, for encoding.
+    - [ ] Fix types or/and return appropriate errors
+- [ ] Unary
+    - [ ] Change encoding to start from 0? 0 is used nowhere I think.
+    - [ ] Encode in bits, and use BitWriter, or bytes ?
+- [ ] Gamma
+    - [ ] Optimize offsetting bytes' calculation.
 
 ### Boolean Search
 
@@ -49,8 +70,6 @@ Searchine will be a search engine from your CLI!
 - [ ] Ranking
 
 ### Index Status
-
-- [ ] Document Index with SHA1 of each document content
 
 ### Optimizations
 
