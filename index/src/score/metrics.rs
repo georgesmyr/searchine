@@ -28,7 +28,7 @@ pub fn calc_tf_idf(tf: f64, idf: f64) -> f64 {
 /// # Returns
 ///
 /// The term frequency of the term in the document.
-pub fn calc_tf(t: usize, d: usize) -> f64 {
+pub fn calc_tf(t: u32, d: u32) -> f64 {
     if d == 0 {
         0.0
     } else {
@@ -51,7 +51,7 @@ pub fn calc_tf(t: usize, d: usize) -> f64 {
 /// * `d` - The number of documents containing the term.
 /// * `n` - The total number of documents in the collection.
 ///
-pub fn calc_idf(d: usize, n: usize) -> f64 {
+pub fn calc_idf(d: u32, n: u32) -> f64 {
     let num = (n + 1) as f64;
     let den = (d + 1) as f64;
     (num / den).log(10.0)

@@ -1,19 +1,20 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+
 use index::collection::CorpusIndex;
 
 use crate::cli::utils::{fetch_modified_files, fetch_new_files, fetch_removed_files};
+use crate::config::INDEX_FILENAME;
 use crate::fs::Directory;
 
 /// Checks for new files, removed files, and modified files.
 pub fn invoke(
-    repo_path: impl AsRef<Path>,
-    index_file_name: &str,
+    repo_dir: impl AsRef<Path>,
     verbose: bool,
 ) -> anyhow::Result<()> {
-    let repo_path = repo_path.as_ref();
-    let index_path = repo_path.join(index_file_name);
+    let repo_path = repo_dir.as_ref();
+    let index_path = repo_path.join(INDEX_FILENAME);
 
     let corpus_index = CorpusIndex::from_file(&index_path).context(format!(
         "Could not read index file: {}",

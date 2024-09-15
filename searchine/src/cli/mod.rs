@@ -38,7 +38,7 @@ pub enum Commands {
         #[clap(short, long)]
         dir_path: Option<String>,
         #[clap(short, long)]
-        top_n: Option<usize>,
+        top_n: Option<u32>,
     },
 }
 

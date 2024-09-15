@@ -1,17 +1,15 @@
-#[macro_use]
-mod fmt;
-mod cli;
-mod fs;
-mod path;
-
 use clap::Parser;
 
 use crate::cli::{Commands, SearchineCli};
-use crate::path::{find_repo_path, canonicalize_dir_path};
+use crate::config::*;
+use crate::path::{canonicalize_dir_path, find_repo_path};
 
-const SEARCHINE_PATH: &str = ".searchine";
-const COLLECTION_FILENAME: &str = "collection.json";
-const INDEX_FILENAME: &str = "index.json";
+#[macro_use]
+mod fmt;
+mod cli;
+mod config;
+mod fs;
+mod path;
 
 fn main() -> anyhow::Result<()> {
     let args = SearchineCli::parse();
@@ -25,13 +23,13 @@ fn main() -> anyhow::Result<()> {
                 println_bold!("searchine repo already exists at: {}", repo_path.display());
                 return Ok(());
             }
-            cli::init::invoke(dir_path, SEARCHINE_PATH)?;
+            cli::init::invoke(dir_path)?;
         }
         // Indexes a corpus of documents at the specified directory path.
         Commands::IndexCollection { dir_path } => {
             let dir_path = canonicalize_dir_path(dir_path)?;
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                cli::collection::index(repo_path, COLLECTION_FILENAME, true)?;
+                cli::collection::index(repo_path, true)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
@@ -40,10 +38,12 @@ fn main() -> anyhow::Result<()> {
             let dir_path = canonicalize_dir_path(dir_path)?;
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 if repo_path.join(COLLECTION_FILENAME).exists() {
-                    cli::collection::list(repo_path, COLLECTION_FILENAME)?;
+                    cli::collection::list(repo_path)?;
                 } else {
                     println_bold!("Collection does not exist at: {}", dir_path.display());
-                    println_bold!("Run `searchine index-collection` to create the collection index.");
+                    println_bold!(
+                        "Run `searchine index-collection` to create the collection index."
+                    );
                 }
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
@@ -53,9 +53,9 @@ fn main() -> anyhow::Result<()> {
             let dir_path = canonicalize_dir_path(dir_path)?;
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 if !repo_path.join(COLLECTION_FILENAME).exists() {
-                    let _ = cli::collection::index(&repo_path, COLLECTION_FILENAME, false);
+                    let _ = cli::collection::index(&repo_path, false);
                 }
-                cli::index::invoke_par(repo_path, INDEX_FILENAME, true)?;
+                cli::index::invoke_par(repo_path, true)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
@@ -63,7 +63,7 @@ fn main() -> anyhow::Result<()> {
         Commands::Status { dir_path } => {
             let dir_path = canonicalize_dir_path(dir_path)?;
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
-                cli::status::invoke(repo_path, COLLECTION_FILENAME, false)?;
+                cli::status::invoke(repo_path, false)?;
             } else {
                 println_bold!("Index repository does not exist at: {}", dir_path.display());
             }
@@ -76,7 +76,8 @@ fn main() -> anyhow::Result<()> {
             let dir_path = canonicalize_dir_path(dir_path)?;
             if let Some(repo_path) = find_repo_path(&dir_path, SEARCHINE_PATH) {
                 if !repo_path.join(INDEX_FILENAME).exists() {
-                    println_bold!("{} {}",
+                    println_bold!(
+                        "{} {}",
                         "Index repository has not been indexed.",
                         "Run `searchine index` to index the repository."
                     );
@@ -92,4 +93,3 @@ fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-

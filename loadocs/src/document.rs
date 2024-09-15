@@ -7,7 +7,7 @@ use crate::read_to_string;
 /// Structure that represents a document. Document in this
 /// case is any part of ++++++
 pub struct Document {
-    doc_id: usize,
+    doc_id: u32,
     page_content: String,
     metadata: DocumentMetadata,
 }
@@ -21,12 +21,12 @@ impl Document {
     /// - `doc_id`: Document ID.
     /// - `page_content`: Content of the document.
     /// - `metadata`: Metadata for the document, e.g. source, source type, etc.
-    pub fn new(doc_id: usize, page_content: String, metadata: DocumentMetadata) -> Self {
+    pub fn new(doc_id: u32, page_content: String, metadata: DocumentMetadata) -> Self {
         Self { doc_id, page_content, metadata }
     }
 
     /// Loads a document from file.
-    pub fn from_file(doc_id: usize, path: impl AsRef<Path>) -> anyhow::Result<Self> {
+    pub fn from_file(doc_id: u32, path: impl AsRef<Path>) -> anyhow::Result<Self> {
         let path = path.as_ref().to_path_buf();
         let content = read_to_string(&path)
             .context(format!("Failed to read file {}", path.display()))?;
@@ -35,7 +35,7 @@ impl Document {
     }
 
     /// Returns the document ID
-    pub fn doc_id(&self) -> usize {
+    pub fn doc_id(&self) -> u32 {
         self.doc_id
     }
 

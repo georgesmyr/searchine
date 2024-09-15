@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 /// is the number of times the term appears in the document.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocumentFrequencyIndex {
-    id: usize,
-    n_terms: usize,
-    index: HashMap<String, usize>,
+    id: u32,
+    n_terms: u32,
+    index: HashMap<u32, u32>,
 }
 
 impl DocumentFrequencyIndex {
-    pub fn new(id: usize) -> Self {
+    pub fn new(id: u32) -> Self {
         Self {
             n_terms: 0,
             id,
@@ -27,7 +27,7 @@ impl DocumentFrequencyIndex {
     ///
     /// If the token is already in the index, the frequency count is
     /// incremented by one. Otherwise, a new posting is created.
-    fn add_token(&mut self, token: String) {
+    fn add_token(&mut self, token: u32) {
         self.n_terms += 1;
         if let Some(posting) = self.index.get_mut(&token) {
             *posting += 1
@@ -37,7 +37,7 @@ impl DocumentFrequencyIndex {
     }
 
     /// Indexes an iterator of tokens.
-    pub fn index_tokens(&mut self, tokens: impl IntoIterator<Item=String>) {
+    pub fn index_tokens(&mut self, tokens: impl IntoIterator<Item=u32>) {
         for token in tokens {
             self.add_token(token);
         }
@@ -45,24 +45,24 @@ impl DocumentFrequencyIndex {
 
     /// Returns the ID of the document that the document index is
     /// referring to.
-    pub fn doc_id(&self) -> usize {
+    pub fn doc_id(&self) -> u32 {
         self.id
     }
 
     /// Returns the total number of terms in the document.
-    pub fn n_terms(&self) -> usize {
+    pub fn n_terms(&self) -> u32 {
         self.n_terms
     }
 
     /// Returns the number of occurrences of a term in the document.
-    pub fn term_count(&self, term: &str) -> usize {
-        *self.index.get(term).unwrap_or(&0)
+    pub fn term_count(&self, term_id: u32) -> u32 {
+        *self.index.get(&term_id).unwrap_or(&0)
     }
 }
 
 impl IntoIterator for DocumentFrequencyIndex {
-    type Item = (String, usize);
-    type IntoIter = std::collections::hash_map::IntoIter<String, usize>;
+    type Item = (u32, u32);
+    type IntoIter = std::collections::hash_map::IntoIter<u32, u32>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.index.into_iter()

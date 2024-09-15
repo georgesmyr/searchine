@@ -31,6 +31,7 @@ Searchine will be a search engine from your CLI!
 ### Query processing
 
 - [ ] Tokenization
+- [ ] Token Encoding in tokenizing.
 - [ ] Stop words
 - [x] Stemming
 - [x] Case folding
@@ -40,7 +41,6 @@ Searchine will be a search engine from your CLI!
 ### Inverted index & Postings
 
 - [x] Postings
-- [ ] Vectors vs Singly linked lists for postings
 - [ ] Postings: doc_id and term_freq as usize or u32?
 - [ ] Indexing pipeline channels
 - [ ] Pipeline with synchronous channels
@@ -56,6 +56,8 @@ Searchine will be a search engine from your CLI!
     - [ ] Encode in bits, and use BitWriter, or bytes ?
 - [ ] Gamma
     - [ ] Optimize offsetting bytes' calculation.
+- [ ] Delta
+- [ ] Golomb
 
 ### Boolean Search
 

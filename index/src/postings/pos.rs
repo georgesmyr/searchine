@@ -10,32 +10,32 @@ use serde::{Serialize, Deserialize};
 /// It contains the document ID and the frequency of the term in the document.
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct PositionPosting {
-    doc_id: usize,
-    positions: HashSet<usize>,
+    doc_id: u32,
+    positions: HashSet<u32>,
 }
 
 impl PositionPosting {
     /// Creates a new frequency-posting, by specifying the document ID
     /// and the frequency.
-    pub fn new(doc_id: usize) -> Self {
+    pub fn new(doc_id: u32) -> Self {
         Self { doc_id, positions: HashSet::new() }
     }
 
     /// Adds positions in the `PositionPosting`.
-    fn add_position(&mut self, pos: usize) {
+    fn add_position(&mut self, pos: u32) {
         self.positions.insert(pos);
     }
 }
 
 impl Posting for PositionPosting {
     /// Returns the document ID of the frequency-posting.
-    fn doc_id(&self) -> usize {
+    fn doc_id(&self) -> u32 {
         self.doc_id
     }
 
     /// Returns the frequency of the term in the document.
-    fn frequency(&self) -> usize {
-        self.positions.len()
+    fn frequency(&self) -> u32 {
+        self.positions.len() as u32
     }
 }
 
@@ -70,16 +70,16 @@ impl PostingsList<PositionPosting> for PositionsPostingsList {
     fn add(&mut self, posting: PositionPosting) {
         self.inner.insert(posting);
     }
-    fn remove(&mut self, doc_id: usize) {
+    fn remove(&mut self, doc_id: u32) {
         self.inner.retain(|posting| posting.doc_id() != doc_id);
     }
-    fn get(&self, doc_id: usize) -> Option<&PositionPosting> {
+    fn get(&self, doc_id: u32) -> Option<&PositionPosting> {
         self.inner.iter().find(|posting| posting.doc_id() == doc_id)
     }
     fn len(&self) -> usize {
         self.inner.len()
     }
-    fn doc_ids(&self) -> Vec<usize> {
+    fn doc_ids(&self) -> Vec<u32> {
         self.inner.iter()
             .map(|posting| posting.doc_id())
             .collect::<Vec<_>>()

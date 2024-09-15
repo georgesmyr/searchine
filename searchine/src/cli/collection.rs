@@ -4,8 +4,10 @@ use std::path::Path;
 
 use anyhow::Context;
 use tabwriter::TabWriter;
+
 use index::collection::*;
 
+use crate::config::COLLECTION_FILENAME;
 use crate::fs::Directory;
 
 /// Indexes a corpus of documents.
@@ -23,7 +25,6 @@ use crate::fs::Directory;
 /// * `corpus_index_file_name` - The name of the file where the corpus index will be written.
 pub fn index(
     repo_dir: impl AsRef<Path>,
-    corpus_index_file_name: impl AsRef<Path>,
     verbose: bool,
 ) -> anyhow::Result<()> {
     let repo_dir = repo_dir.as_ref();
@@ -32,7 +33,7 @@ pub fn index(
     let dir = Directory::new(dir_path)?;
     let paths = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
     let corpus_index = CorpusIndex::from_paths(paths)?;
-    corpus_index.write_to_file(repo_dir.join(corpus_index_file_name))?;
+    corpus_index.write_to_file(repo_dir.join(COLLECTION_FILENAME))?;
 
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x9A]).unwrap_or_default();
     println_bold!("{} Indexed corpus at: {}", emoji, repo_dir.display());
@@ -55,9 +56,8 @@ pub fn index(
 /// Returns an error if the corpus index file cannot be read.
 pub fn list(
     repo_dir: impl AsRef<Path>,
-    corpus_index_file_name: impl AsRef<Path>,
 ) -> io::Result<()> {
-    let index_path = repo_dir.as_ref().join(corpus_index_file_name);
+    let index_path = repo_dir.as_ref().join(COLLECTION_FILENAME);
     // let base_path = repo_dir.as_ref().parent().unwrap();
     let corpus_index = CorpusIndex::from_file(index_path)?
         .into_iter()

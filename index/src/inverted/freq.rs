@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io;
+use std::io::{BufWriter, BufReader};
 use std::path::Path;
 
 use anyhow::Context;
@@ -15,7 +15,7 @@ use crate::postings::*;
 /// Builder for inverted index with frequency postings.
 #[derive(Default)]
 struct FrequencyInvertedIndexer {
-    index: HashMap<String, FrequencyPostingsList>,
+    index: HashMap<u32, FrequencyPostingsList>,
 }
 
 impl FrequencyInvertedIndexer {
@@ -50,7 +50,7 @@ impl FrequencyInvertedIndexer {
 /// the token as the key and a postings list as the value.
 #[derive(Debug, Serialize, Deserialize)]
 struct FrequencyInvertedIndex {
-    inner: HashMap<String, FrequencyPostingsList>,
+    inner: HashMap<u32, FrequencyPostingsList>,
 }
 
 #[derive(Default)]
@@ -88,31 +88,31 @@ pub struct FrequencyIndex {
 }
 
 impl Index for FrequencyIndex {
-    fn n_docs(&self) -> usize {
+    fn n_docs(&self) -> u32 {
         self.doc_terms_counter.n_docs()
     }
 
-    fn doc_ids_containing(&self, term: &str) -> Vec<usize> {
-        let res = self.inverted_index.inner.get(term);
+    fn doc_ids_containing(&self, term_id: u32) -> Vec<u32> {
+        let res = self.inverted_index.inner.get(&term_id);
         match res {
             Some(postings_list) => postings_list.doc_ids(),
             _ => Vec::new(),
         }
     }
 
-    fn n_docs_containing(&self, term: &str) -> usize {
+    fn n_docs_containing(&self, term_id: u32) -> u32 {
         self.inverted_index
             .inner
-            .get(term)
-            .map_or(0, |p_lst| p_lst.len())
+            .get(&term_id)
+            .map_or(0, |p_lst| p_lst.len() as u32)
     }
 
-    fn n_terms(&self, doc_id: usize) -> usize {
+    fn n_terms(&self, doc_id: u32) -> u32 {
         self.doc_terms_counter.get_doc_terms(doc_id)
     }
 
-    fn term_frequency(&self, doc_id: usize, term: &str) -> usize {
-        let x = self.inverted_index.inner.get(term).unwrap();
+    fn term_frequency(&self, doc_id: u32, term_id: u32) -> u32 {
+        let x = self.inverted_index.inner.get(&term_id).unwrap();
         let y = x.get(doc_id).unwrap();
         y.frequency()
     }
@@ -126,7 +126,7 @@ impl FrequencyIndex {
             "Failed to create index file at: {}",
             path.display()
         ))?;
-        let writer = io::BufWriter::new(file);
+        let writer = BufWriter::new(file);
         serde_json::to_writer(writer, &self).context("Failed to write index to writer.")
     }
 
@@ -135,7 +135,7 @@ impl FrequencyIndex {
         let path = path.as_ref();
         let file =
             fs::File::open(path).context(format!("Failed to open file at: {}", path.display()))?;
-        let reader = io::BufReader::new(file);
+        let reader = BufReader::new(file);
         serde_json::from_reader(reader).context(format!(
             "Failed to read index from file: {}",
             path.display()
@@ -150,17 +150,11 @@ mod tests {
 
     #[test]
     fn test_frequency_indexing() {
-        let tokens_1 = vec![
-            "this".to_string(),
-            "is".to_string(),
-            "great".to_string(),
-            "this".to_string(),
-            "rocks".to_string(),
-        ];
+        let tokens_1 = vec![1, 2, 3, 1, 4];
         let mut doc_index_1 = DocumentFrequencyIndex::new(0);
         doc_index_1.index_tokens(tokens_1);
 
-        let tokens_2 = vec!["this".to_string(), "is".to_string(), "new".to_string()];
+        let tokens_2 = vec![1, 2, 5];
         let mut doc_index_2 = DocumentFrequencyIndex::new(1);
         doc_index_2.index_tokens(tokens_2);
 
@@ -171,10 +165,10 @@ mod tests {
         println!("{:?}", index);
 
         assert_eq!(index.n_docs(), 2);
-        assert_eq!(index.n_docs_containing("this"), 2);
+        assert_eq!(index.n_docs_containing(1), 2);
         assert_eq!(index.n_terms(0), 5);
         assert_eq!(index.n_terms(1), 3);
-        assert_eq!(index.term_frequency(0, "this"), 2);
-        assert_eq!(index.term_frequency(1, "this"), 1);
+        assert_eq!(index.term_frequency(0, 1), 2);
+        assert_eq!(index.term_frequency(1, 1), 1);
     }
 }

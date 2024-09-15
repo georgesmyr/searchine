@@ -10,26 +10,26 @@ use crate::postings::{Posting, PostingsList};
 /// It contains the document ID and the frequency of the term in the document.
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct FrequencyPosting {
-    doc_id: usize,
-    frequency: usize,
+    doc_id: u32,
+    frequency: u32,
 }
 
 impl FrequencyPosting {
     /// Creates a new frequency-posting, by specifying the document ID
     /// and the frequency.
-    pub fn new(doc_id: usize, frequency: usize) -> Self {
+    pub fn new(doc_id: u32, frequency: u32) -> Self {
         Self { doc_id, frequency }
     }
 }
 
 impl Posting for FrequencyPosting {
     /// Returns the document ID of the frequency-posting.
-    fn doc_id(&self) -> usize {
+    fn doc_id(&self) -> u32 {
         self.doc_id
     }
 
     /// Returns the frequency of the term in the document.
-    fn frequency(&self) -> usize {
+    fn frequency(&self) -> u32 {
         self.frequency
     }
 }
@@ -66,16 +66,16 @@ impl PostingsList<FrequencyPosting> for FrequencyPostingsList {
     fn add(&mut self, posting: FrequencyPosting) {
         self.inner.insert(posting);
     }
-    fn remove(&mut self, doc_id: usize) {
+    fn remove(&mut self, doc_id: u32) {
         self.inner.retain(|posting| posting.doc_id() != doc_id);
     }
-    fn get(&self, doc_id: usize) -> Option<&FrequencyPosting> {
+    fn get(&self, doc_id: u32) -> Option<&FrequencyPosting> {
         self.inner.iter().find(|posting| posting.doc_id() == doc_id)
     }
     fn len(&self) -> usize {
         self.inner.len()
     }
-    fn doc_ids(&self) -> Vec<usize> {
+    fn doc_ids(&self) -> Vec<u32> {
         self.inner.iter()
             .map(|posting| posting.doc_id())
             .collect::<Vec<_>>()

@@ -16,14 +16,14 @@ use serde::{Deserialize, Serialize};
 /// modified since the last indexing.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CorpusIndexEntry {
-    document_id: usize,
+    document_id: u32,
     modified: SystemTime,
 }
 
 impl CorpusIndexEntry {
     /// Creates a new `CorpusIndexEntry` with specified document ID,
     /// and the last time the document was modified.
-    pub fn new(document_id: usize, modified: SystemTime) -> Self {
+    pub fn new(document_id: u32, modified: SystemTime) -> Self {
         Self {
             document_id,
             modified,
@@ -37,7 +37,7 @@ impl CorpusIndexEntry {
     }
 
     /// Returns the document ID associated with the document.
-    pub fn document_id(&self) -> usize {
+    pub fn document_id(&self) -> u32 {
         self.document_id
     }
 }
@@ -71,7 +71,7 @@ impl Eq for CorpusIndexEntry {}
 pub struct CorpusIndex {
     root_dir: PathBuf,
     index: HashMap<PathBuf, CorpusIndexEntry>,
-    next_id: usize,
+    next_id: u32,
 }
 
 impl Default for CorpusIndex {
@@ -126,7 +126,7 @@ impl CorpusIndex {
     /// # Arguments
     ///
     /// * `document_path` - The path to the document.
-    pub fn get_document_id(&self, document_path: &PathBuf) -> Option<usize> {
+    pub fn get_document_id(&self, document_path: &PathBuf) -> Option<u32> {
         Some(self.index.get(document_path)?.document_id)
     }
 
@@ -199,7 +199,7 @@ impl<'a> IntoIterator for &'a CorpusIndex {
 
 pub struct InvertedCollection {
     root_dir: PathBuf,
-    inner: HashMap<usize, PathBuf>,
+    inner: HashMap<u32, PathBuf>,
 }
 
 impl InvertedCollection {
@@ -208,11 +208,11 @@ impl InvertedCollection {
             .context("Failed to load collection from file.")?;
         let inv = collection.index.iter()
             .map(|(path, entry)| { (entry.document_id, path.clone()) })
-            .collect::<HashMap<usize, PathBuf>>();
+            .collect::<HashMap<u32, PathBuf>>();
         Ok(InvertedCollection { root_dir: collection.root_dir, inner: inv })
     }
 
-    pub fn get_path(&self, doc_id: usize) -> Option<&PathBuf> {
+    pub fn get_path(&self, doc_id: u32) -> Option<&PathBuf> {
         self.inner.get(&doc_id)
     }
 }

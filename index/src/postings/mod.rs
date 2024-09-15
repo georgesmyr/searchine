@@ -5,9 +5,9 @@ pub(crate) use freq::{FrequencyPosting, FrequencyPostingsList};
 
 pub(crate) trait Posting {
     /// Returns the document id of the posting.
-    fn doc_id(&self) -> usize;
+    fn doc_id(&self) -> u32;
     /// Returns the frequency of the term in the document.
-    fn frequency(&self) -> usize;
+    fn frequency(&self) -> u32;
 }
 
 pub(crate) trait PostingsList<P>
@@ -17,11 +17,11 @@ where
     /// Adds a posting to the postings list.
     fn add(&mut self, posting: P);
     /// Removes the posting of the specified document ID.
-    fn remove(&mut self, doc_id: usize);
+    fn remove(&mut self, doc_id: u32);
     /// Returns the posting of the specified document ID.
-    fn get(&self, doc_id: usize) -> Option<&P>;
+    fn get(&self, doc_id: u32) -> Option<&P>;
     /// Returns the number of postings in the list.
     fn len(&self) -> usize;
     /// Returns the document IDs
-    fn doc_ids(&self) -> Vec<usize>;
+    fn doc_ids(&self) -> Vec<u32>;
 }
