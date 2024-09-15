@@ -15,13 +15,13 @@ use serde::{Deserialize, Serialize};
 /// The last modified time is used to determine if the document has been
 /// modified since the last indexing.
 #[derive(Serialize, Deserialize, Clone)]
-pub struct CorpusIndexEntry {
+pub struct CollectionEntry {
     document_id: u32,
     modified: SystemTime,
 }
 
-impl CorpusIndexEntry {
-    /// Creates a new `CorpusIndexEntry` with specified document ID,
+impl CollectionEntry {
+    /// Creates a new `CollectionEntry` with specified document ID,
     /// and the last time the document was modified.
     pub fn new(document_id: u32, modified: SystemTime) -> Self {
         Self {
@@ -42,25 +42,25 @@ impl CorpusIndexEntry {
     }
 }
 
-impl Ord for CorpusIndexEntry {
+impl Ord for CollectionEntry {
     fn cmp(&self, other: &Self) -> Ordering {
         self.document_id.cmp(&other.document_id)
     }
 }
 
-impl PartialOrd for CorpusIndexEntry {
+impl PartialOrd for CollectionEntry {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl PartialEq for CorpusIndexEntry {
+impl PartialEq for CollectionEntry {
     fn eq(&self, other: &Self) -> bool {
         self.document_id == other.document_id
     }
 }
 
-impl Eq for CorpusIndexEntry {}
+impl Eq for CollectionEntry {}
 
 /// A struct representing a corpus index, which also serves as cache.
 ///
@@ -70,8 +70,7 @@ impl Eq for CorpusIndexEntry {}
 #[derive(Serialize, Deserialize)]
 pub struct CorpusIndex {
     root_dir: PathBuf,
-    index: HashMap<PathBuf, CorpusIndexEntry>,
-    next_id: u32,
+    index: HashMap<PathBuf, CollectionEntry>,
 }
 
 impl Default for CorpusIndex {
@@ -79,7 +78,6 @@ impl Default for CorpusIndex {
         Self {
             root_dir: PathBuf::new(),
             index: HashMap::new(),
-            next_id: 0,
         }
     }
 }
@@ -89,9 +87,9 @@ impl CorpusIndex {
     pub fn insert(&mut self, document_path: PathBuf) -> io::Result<()> {
         if !self.index.contains_key(&document_path) {
             let modified = document_path.metadata()?.modified()?;
-            let entry = CorpusIndexEntry::new(self.next_id, modified);
+            let next_id = self.index.len() as u32;
+            let entry = CollectionEntry::new(next_id, modified);
             self.index.insert(document_path, entry);
-            self.next_id += 1;
         }
         Ok(())
     }
@@ -163,9 +161,9 @@ impl CorpusIndex {
     ///
     /// # Returns
     ///
-    /// An `Option` containing the removed `CorpusIndexEntry` if it exists,
+    /// An `Option` containing the removed `CollectionEntry` if it exists,
     /// or `None` if it does not.
-    pub fn remove(&mut self, document_path: &PathBuf) -> Option<CorpusIndexEntry> {
+    pub fn remove(&mut self, document_path: &PathBuf) -> Option<CollectionEntry> {
         self.index.remove(document_path)
     }
 
@@ -180,8 +178,8 @@ impl CorpusIndex {
 }
 
 impl IntoIterator for CorpusIndex {
-    type Item = (PathBuf, CorpusIndexEntry);
-    type IntoIter = std::collections::hash_map::IntoIter<PathBuf, CorpusIndexEntry>;
+    type Item = (PathBuf, CollectionEntry);
+    type IntoIter = std::collections::hash_map::IntoIter<PathBuf, CollectionEntry>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.index.into_iter()
@@ -189,8 +187,8 @@ impl IntoIterator for CorpusIndex {
 }
 
 impl<'a> IntoIterator for &'a CorpusIndex {
-    type Item = (&'a PathBuf, &'a CorpusIndexEntry);
-    type IntoIter = std::collections::hash_map::Iter<'a, PathBuf, CorpusIndexEntry>;
+    type Item = (&'a PathBuf, &'a CollectionEntry);
+    type IntoIter = std::collections::hash_map::Iter<'a, PathBuf, CollectionEntry>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.index.iter()
@@ -198,7 +196,6 @@ impl<'a> IntoIterator for &'a CorpusIndex {
 }
 
 pub struct InvertedCollection {
-    root_dir: PathBuf,
     inner: HashMap<u32, PathBuf>,
 }
 
@@ -209,10 +206,14 @@ impl InvertedCollection {
         let inv = collection.index.iter()
             .map(|(path, entry)| { (entry.document_id, path.clone()) })
             .collect::<HashMap<u32, PathBuf>>();
-        Ok(InvertedCollection { root_dir: collection.root_dir, inner: inv })
+        Ok(InvertedCollection { inner: inv })
     }
 
     pub fn get_path(&self, doc_id: u32) -> Option<&PathBuf> {
         self.inner.get(&doc_id)
     }
 }
+
+
+#[cfg(test)]
+mod tests {}
