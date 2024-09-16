@@ -5,19 +5,16 @@ use anyhow::Context;
 use index::collection::Collection;
 
 use crate::cli::utils::{fetch_modified_files, fetch_new_files, fetch_removed_files};
-use crate::config::INDEX_FILENAME;
+use crate::config::COLLECTION_FILENAME;
 use crate::fs::Directory;
 
 /// Checks for new files, removed files, and modified files.
-pub fn invoke(
-    repo_dir: impl AsRef<Path>,
-    verbose: bool,
-) -> anyhow::Result<()> {
+pub fn invoke(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<()> {
     let repo_path = repo_dir.as_ref();
-    let index_path = repo_path.join(INDEX_FILENAME);
+    let index_path = repo_path.join(COLLECTION_FILENAME);
 
     let corpus_index = Collection::from_file(&index_path).context(format!(
-        "Could not read index file: {}",
+        "Could not read collection file: {}",
         index_path.display()
     ))?;
 
