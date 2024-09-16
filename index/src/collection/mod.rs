@@ -68,12 +68,12 @@ impl Eq for CollectionEntry {}
 /// Each document is assigned a unique document ID, and the last time the
 /// document was indexed.
 #[derive(Serialize, Deserialize)]
-pub struct CorpusIndex {
+pub struct Collection {
     root_dir: PathBuf,
     index: HashMap<PathBuf, CollectionEntry>,
 }
 
-impl Default for CorpusIndex {
+impl Default for Collection {
     fn default() -> Self {
         Self {
             root_dir: PathBuf::new(),
@@ -82,7 +82,7 @@ impl Default for CorpusIndex {
     }
 }
 
-impl CorpusIndex {
+impl Collection {
     /// Adds a document to the index, and assigns it a unique ID.
     pub fn insert(&mut self, document_path: PathBuf) -> io::Result<()> {
         if !self.index.contains_key(&document_path) {
@@ -96,7 +96,7 @@ impl CorpusIndex {
 
     /// Creates a new `CorpusIndex` from an iterator of paths.
     pub fn from_paths(iter: impl IntoIterator<Item=PathBuf>) -> io::Result<Self> {
-        let mut index = CorpusIndex::default();
+        let mut index = Self::default();
         for path in iter {
             index.insert(path)?;
         }
@@ -108,7 +108,7 @@ impl CorpusIndex {
         let path = path.as_ref();
         let file = File::open(path)?;
         let reader = BufReader::new(file);
-        let index: CorpusIndex = serde_json::from_reader(reader)?;
+        let index = serde_json::from_reader(reader)?;
         Ok(index)
     }
 
@@ -177,7 +177,7 @@ impl CorpusIndex {
     }
 }
 
-impl IntoIterator for CorpusIndex {
+impl IntoIterator for Collection {
     type Item = (PathBuf, CollectionEntry);
     type IntoIter = std::collections::hash_map::IntoIter<PathBuf, CollectionEntry>;
 
@@ -186,7 +186,7 @@ impl IntoIterator for CorpusIndex {
     }
 }
 
-impl<'a> IntoIterator for &'a CorpusIndex {
+impl<'a> IntoIterator for &'a Collection {
     type Item = (&'a PathBuf, &'a CollectionEntry);
     type IntoIter = std::collections::hash_map::Iter<'a, PathBuf, CollectionEntry>;
 
@@ -201,7 +201,7 @@ pub struct InvertedCollection {
 
 impl InvertedCollection {
     pub fn from_file(path: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let collection = CorpusIndex::from_file(path)
+        let collection = Collection::from_file(path)
             .context("Failed to load collection from file.")?;
         let inv = collection.index.iter()
             .map(|(path, entry)| { (entry.document_id, path.clone()) })

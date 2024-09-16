@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 
-use index::collection::CorpusIndex;
+use index::collection::Collection;
 
 use crate::cli::utils::{fetch_modified_files, fetch_new_files, fetch_removed_files};
 use crate::config::INDEX_FILENAME;
@@ -16,7 +16,7 @@ pub fn invoke(
     let repo_path = repo_dir.as_ref();
     let index_path = repo_path.join(INDEX_FILENAME);
 
-    let corpus_index = CorpusIndex::from_file(&index_path).context(format!(
+    let corpus_index = Collection::from_file(&index_path).context(format!(
         "Could not read index file: {}",
         index_path.display()
     ))?;

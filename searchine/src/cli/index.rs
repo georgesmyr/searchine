@@ -31,7 +31,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<()> {
         .context(format!("Failed to get parent for: {}", repo_dir.display()))?;
     let dir = Directory::new(dir_path)?;
     let dir = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
-    let corpus_index = CorpusIndex::from_paths(dir)?;
+    let corpus_index = Collection::from_paths(dir)?;
 
     let mut indexer = FrequencyIndexer::new();
     for (path, _) in &corpus_index {
@@ -63,7 +63,7 @@ pub fn invoke(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<()> {
 /// Part of a pipeline that loads documents.
 fn load_docs<I>(
     paths: I,
-    collection: CorpusIndex,
+    collection: Collection,
 ) -> (Receiver<Document>, JoinHandle<anyhow::Result<()>>)
 where
     I: IntoIterator<Item=PathBuf> + Send + 'static,
@@ -139,7 +139,7 @@ pub fn invoke_par(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<(
     let dir = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
 
     // // This is indexing collection from the scratch?
-    let collection = CorpusIndex::from_paths(dir.clone())?;
+    let collection = Collection::from_paths(dir.clone())?;
 
     let (doc_receiver, h1) = load_docs(dir, collection);
     let (token_receiver, h2) = tokenize_content(doc_receiver);

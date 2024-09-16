@@ -32,7 +32,7 @@ pub fn index(
 
     let dir = Directory::new(dir_path)?;
     let paths = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
-    let corpus_index = CorpusIndex::from_paths(paths)?;
+    let corpus_index = Collection::from_paths(paths)?;
     corpus_index.write_to_file(repo_dir.join(COLLECTION_FILENAME))?;
 
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x9A]).unwrap_or_default();
@@ -59,7 +59,7 @@ pub fn list(
 ) -> io::Result<()> {
     let index_path = repo_dir.as_ref().join(COLLECTION_FILENAME);
     // let base_path = repo_dir.as_ref().parent().unwrap();
-    let corpus_index = CorpusIndex::from_file(index_path)?
+    let corpus_index = Collection::from_file(index_path)?
         .into_iter()
         .collect::<BTreeSet<_>>();
 
