@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io::{BufWriter, BufReader};
+use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
 use anyhow::Context;
@@ -8,19 +8,20 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 use crate::doc::freq::DocumentFrequencyIndex;
-use crate::doc::{DocumentTermsCounter, DocumentTermsCounterBuilder};
+use crate::doc::term::DocumentTermsCounter;
 use crate::inverted::Index;
 use crate::postings::*;
 
-/// Builder for inverted index with frequency postings.
-#[derive(Default)]
-struct FrequencyInvertedIndexer {
-    index: HashMap<u32, FrequencyPostingsList>,
+/// An in-memory inverted index. The inverted index is a HashMap with
+/// the token as the key and a postings list as the value.
+#[derive(Default, Debug, Serialize, Deserialize)]
+struct FrequencyInvertedIndex {
+    inner: HashMap<u32, FrequencyPostingsList>,
 }
 
-impl FrequencyInvertedIndexer {
+impl FrequencyInvertedIndex {
     /// Inserts a document index into the in-memory frequency inverted
-    /// indexer.
+    /// index.
     ///
     /// For each token in the document index, the method inserts the
     /// token into the inverted index. If the token is already in the
@@ -30,61 +31,63 @@ impl FrequencyInvertedIndexer {
 
         for (token, token_freq) in doc_index {
             let posting = FrequencyPosting::new(doc_id, token_freq);
-            if let Some(postings_list) = self.index.get_mut(&token) {
+            if let Some(postings_list) = self.inner.get_mut(&token) {
                 postings_list.add(posting);
             } else {
                 let mut postings_list = FrequencyPostingsList::new();
                 postings_list.add(posting);
-                self.index.insert(token, postings_list);
+                self.inner.insert(token, postings_list);
             }
         }
     }
-
-    /// Builds the inverted index.
-    fn build(self) -> FrequencyInvertedIndex {
-        FrequencyInvertedIndex { inner: self.index }
-    }
 }
 
-/// An in-memory inverted index. The inverted index is a HashMap with
-/// the token as the key and a postings list as the value.
-#[derive(Debug, Serialize, Deserialize)]
-struct FrequencyInvertedIndex {
-    inner: HashMap<u32, FrequencyPostingsList>,
+/// Frequency indexing model.
+///
+/// It stores the inverted frequency index, and a structure
+/// that stores the number of terms in each document in the
+/// index.
+#[derive(Default, Debug, Deserialize, Serialize)]
+pub struct FrequencyIndex {
+    inverted_index: FrequencyInvertedIndex,
+    doc_terms_counter: DocumentTermsCounter,
 }
 
-#[derive(Default)]
-pub struct FrequencyIndexer {
-    inverted_indexer: FrequencyInvertedIndexer,
-    counter_builder: DocumentTermsCounterBuilder,
-}
-
-impl FrequencyIndexer {
-    /// Creates a new indexer
+impl FrequencyIndex {
+    /// Creates a new, empty frequency index.
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Indexes a document index with frequency postings.
     pub fn index(&mut self, doc_index: DocumentFrequencyIndex) {
-        self.counter_builder
+        self.doc_terms_counter
             .insert_doc_terms(doc_index.doc_id(), doc_index.n_terms());
-        self.inverted_indexer.index(doc_index);
+        self.inverted_index.index(doc_index);
     }
 
-    /// Builds a frequency index.
-    pub fn build(self) -> FrequencyIndex {
-        FrequencyIndex {
-            inverted_index: self.inverted_indexer.build(),
-            doc_terms_counter: self.counter_builder.build(),
-        }
+    /// Writes inverted index with frequency postings to file.
+    pub fn write_to_file(self, path: impl AsRef<Path>) -> anyhow::Result<()> {
+        let path = path.as_ref();
+        let file = fs::File::create(path).context(format!(
+            "Failed to create index file at: {}",
+            path.display()
+        ))?;
+        let writer = BufWriter::new(file);
+        serde_json::to_writer(writer, &self).context("Failed to write index to writer.")
     }
-}
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct FrequencyIndex {
-    inverted_index: FrequencyInvertedIndex,
-    doc_terms_counter: DocumentTermsCounter,
+    /// Loads inverted index with frequency postings from file.
+    pub fn from_file(path: impl AsRef<Path>) -> anyhow::Result<Self> {
+        let path = path.as_ref();
+        let file =
+            fs::File::open(path).context(format!("Failed to open file at: {}", path.display()))?;
+        let reader = BufReader::new(file);
+        serde_json::from_reader(reader).context(format!(
+            "Failed to read index from file: {}",
+            path.display()
+        ))
+    }
 }
 
 impl Index for FrequencyIndex {
@@ -118,35 +121,11 @@ impl Index for FrequencyIndex {
     }
 }
 
-impl FrequencyIndex {
-    /// Writes inverted index with frequency postings to file.
-    pub fn write_to_file(self, path: impl AsRef<Path>) -> anyhow::Result<()> {
-        let path = path.as_ref();
-        let file = fs::File::create(path).context(format!(
-            "Failed to create index file at: {}",
-            path.display()
-        ))?;
-        let writer = BufWriter::new(file);
-        serde_json::to_writer(writer, &self).context("Failed to write index to writer.")
-    }
-
-    /// Loads inverted index with frequency postings from file.
-    pub fn from_file(path: impl AsRef<Path>) -> anyhow::Result<Self> {
-        let path = path.as_ref();
-        let file =
-            fs::File::open(path).context(format!("Failed to open file at: {}", path.display()))?;
-        let reader = BufReader::new(file);
-        serde_json::from_reader(reader).context(format!(
-            "Failed to read index from file: {}",
-            path.display()
-        ))
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::doc::freq::DocumentFrequencyIndex;
+
+    use super::*;
 
     #[test]
     fn test_frequency_indexing() {
@@ -158,11 +137,9 @@ mod tests {
         let mut doc_index_2 = DocumentFrequencyIndex::new(1);
         doc_index_2.index_tokens(tokens_2);
 
-        let mut indexer = FrequencyIndexer::new();
-        indexer.index(doc_index_1);
-        indexer.index(doc_index_2);
-        let index = indexer.build();
-        println!("{:?}", index);
+        let mut index = FrequencyIndex::new();
+        index.index(doc_index_1);
+        index.index(doc_index_2);
 
         assert_eq!(index.n_docs(), 2);
         assert_eq!(index.n_docs_containing(1), 2);
