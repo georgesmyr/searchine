@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use std::path::Path;
-use std::io::{self, BufWriter, BufReader};
 use std::fs;
+use std::io::{self, BufReader, BufWriter};
+use std::path::Path;
 
 use rust_stemmers::{Algorithm, Stemmer};
 use serde::{Deserialize, Serialize};
@@ -91,6 +91,18 @@ pub struct Tokenizer {
     encoder: Encoder,
 }
 
+impl Default for Tokenizer {
+    /// Creates a new builder with a default pre-tokenizer and stemmer,
+    /// and no encoder.
+    fn default() -> Self {
+        Self {
+            pre_tokenizer: PreTokenizer::new(),
+            stemmer: Stemmer::create(Algorithm::English),
+            encoder: Encoder::default(),
+        }
+    }
+}
+
 impl Tokenizer {
     /// Tokenizes the input text.
     ///
@@ -125,18 +137,6 @@ impl Tokenizer {
     }
 }
 
-impl Default for Tokenizer {
-    /// Creates a new builder with a default pre-tokenizer and stemmer,
-    /// and no encoder.
-    fn default() -> Self {
-        Self {
-            pre_tokenizer: PreTokenizer::new(),
-            stemmer: Stemmer::create(Algorithm::English),
-            encoder: Encoder::default(),
-        }
-    }
-}
-
 /// Structure that stores the token and its count.
 ///
 /// For example, after we have tokenized a query, we can
@@ -163,7 +163,9 @@ where
         for token in tokens {
             *tokens_counter.entry(token).or_insert(0) += 1;
         }
-        TokenCounts { inner: tokens_counter }
+        TokenCounts {
+            inner: tokens_counter,
+        }
     }
 }
 
@@ -178,7 +180,24 @@ impl IntoIterator for TokenCounts {
 
 #[cfg(test)]
 mod tests {
+    use rust_stemmers::{Algorithm, Stemmer};
+
     use super::*;
+
+    #[test]
+    fn test_pre_tokenizer() {
+        let splitter = PreTokenizer::new();
+        let text = "I want it, i got it.";
+        let words = splitter.separate_text(text);
+        assert_eq!(words, vec!["i", "want", "it", "i", "got", "it"]);
+    }
+
+    #[test]
+    fn test_stemmer() {
+        let stemmer = Stemmer::create(Algorithm::English);
+        // Stemmer does not turn to lowercase
+        assert_eq!(stemmer.stem("Intensely"), "Intens");
+    }
 
     #[test]
     fn test_encoding_decoding() {
