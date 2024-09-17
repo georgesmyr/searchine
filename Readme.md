@@ -1,5 +1,9 @@
 # Searchine
 
+<p align="center">
+  <img src="./assets/logo.webp" alt="Alt text" width="300" height="300">
+</p>
+
 Searchine is a simple (for now) local CLI document search engine implemented in Rust from scratch.
 The tool is planned to change in the future but currently the interface is like so:
 
@@ -31,7 +35,7 @@ Searchine will be a search engine from your CLI!
 ### Query processing
 
 - [ ] Tokenization
-- [ ] Token Encoding in tokenizing.
+- [x] Token Encoding in tokenizing.
 - [ ] Stop words
 - [x] Stemming
 - [x] Case folding
@@ -41,10 +45,9 @@ Searchine will be a search engine from your CLI!
 ### Inverted index & Postings
 
 - [x] Postings
-- [ ] Postings: doc_id and term_freq as usize or u32?
+- [x] Postings: doc_id and term_freq as usize or u32? Answer: u32.
 - [ ] Indexing pipeline channels
 - [ ] Pipeline with synchronous channels
-- [ ] Return references, i.e. &str or &[T], to avoid heap allocations.
 
 ### Encoding
 
