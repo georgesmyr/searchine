@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.86"
+tokenize = { path = "../tokenize" }
+documents = { path = "../documents" }
+idencode = { git = "https://github.com/gsmyridis/idencode" }
+anyhow = "1.0.88"
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.122"

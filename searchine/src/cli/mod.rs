@@ -1,8 +1,8 @@
+pub mod collection;
 pub mod index;
 pub mod init;
 pub mod search;
 pub mod status;
-pub mod collection;
 pub mod utils;
 
 #[derive(clap::Parser)]
@@ -41,4 +41,3 @@ pub enum Commands {
         top_n: Option<u32>,
     },
 }
-

@@ -36,7 +36,7 @@ pub fn calc_tf(t: u32, d: u32) -> f64 {
     }
 }
 
-/// Calculates the inverse term frequency of aa tern in a collection of documents.
+/// Calculates the inverse term frequency of a term in a collection of documents.
 ///
 /// The inverse document frequency is a measure of how much information the word
 /// provides, i.e., how common or rare it is across all documents. It is the
@@ -50,9 +50,27 @@ pub fn calc_tf(t: u32, d: u32) -> f64 {
 ///
 /// * `d` - The number of documents containing the term.
 /// * `n` - The total number of documents in the collection.
-///
 pub fn calc_idf(d: u32, n: u32) -> f64 {
     let num = (n + 1) as f64;
     let den = (d + 1) as f64;
     (num / den).log(10.0)
+}
+
+/// Calculates the BM25 (Best Matching 25) score for a term in a collection of
+/// documents.
+///
+/// # Arguments
+///
+/// * `f` - The number of times the term appears in the document.
+/// * `n` - The total number of documents in the collection.
+/// * `d` - The number of documents containing the term.
+/// * `l` - The number of terms in the document.
+/// * `a` - Average length of a document.
+/// * `k` - Free parameter, usually in [1.2, 2.0]
+/// * `b` - Free parameter, usually equal to 0.75.
+pub fn calc_bm25(f: u32, n: u32, d: u32, l: u32, a: f64, k: f64, b: f64) -> f64 {
+    let idf = calc_idf(d, n);
+    let num = (f as f64) * (k + 1f64);
+    let den = (f as f64) + k * (1f64 - b + b * (l as f64) / a);
+    idf * num / den
 }

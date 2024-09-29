@@ -1,24 +1,28 @@
-use crate::postings::{Posting, PostingsList};
-
-use std::hash::{Hash, Hasher};
 use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
+use documents::DocumentId;
+
+use crate::postings::{Posting, PostingsList};
 
 /// Structure that represents a frequency-posting for a term.
 /// It contains the document ID and the frequency of the term in the document.
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct PositionPosting {
-    doc_id: u32,
+    doc_id: DocumentId,
     positions: HashSet<u32>,
 }
 
 impl PositionPosting {
     /// Creates a new frequency-posting, by specifying the document ID
     /// and the frequency.
-    pub fn new(doc_id: u32) -> Self {
-        Self { doc_id, positions: HashSet::new() }
+    pub fn new(doc_id: DocumentId) -> Self {
+        Self {
+            doc_id,
+            positions: HashSet::new(),
+        }
     }
 
     /// Adds positions in the `PositionPosting`.
@@ -29,7 +33,7 @@ impl PositionPosting {
 
 impl Posting for PositionPosting {
     /// Returns the document ID of the frequency-posting.
-    fn doc_id(&self) -> u32 {
+    fn doc_id(&self) -> DocumentId {
         self.doc_id
     }
 
@@ -70,22 +74,22 @@ impl PostingsList<PositionPosting> for PositionsPostingsList {
     fn add(&mut self, posting: PositionPosting) {
         self.inner.insert(posting);
     }
-    fn remove(&mut self, doc_id: u32) {
+    fn remove(&mut self, doc_id: DocumentId) {
         self.inner.retain(|posting| posting.doc_id() != doc_id);
     }
-    fn get(&self, doc_id: u32) -> Option<&PositionPosting> {
+    fn get(&self, doc_id: DocumentId) -> Option<&PositionPosting> {
         self.inner.iter().find(|posting| posting.doc_id() == doc_id)
     }
     fn len(&self) -> usize {
         self.inner.len()
     }
-    fn doc_ids(&self) -> Vec<u32> {
-        self.inner.iter()
+    fn doc_ids(&self) -> Vec<DocumentId> {
+        self.inner
+            .iter()
             .map(|posting| posting.doc_id())
             .collect::<Vec<_>>()
     }
 }
-
 
 #[cfg(test)]
 mod tests {

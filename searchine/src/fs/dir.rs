@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use walkdir::{DirEntry, WalkDir};
 
-use loadocs::DocumentType;
+use documents::DocumentType;
+
 use crate::path::get_relative_path;
 
 /// A struct representing a directory in the repository.
@@ -21,7 +22,9 @@ use crate::path::get_relative_path;
 #[derive(Debug)]
 pub struct Directory {
     path: PathBuf,
+    #[allow(dead_code)]
     repo: PathBuf,
+    #[allow(dead_code)]
     cwd: PathBuf,
 }
 
@@ -54,7 +57,7 @@ impl Directory {
     ///
     /// Hidden directories and files (starting with a dot `.`) are ignored,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_relative_paths(&self, verbose: bool) -> impl Iterator<Item=PathBuf> {
+    pub fn iter_relative_paths(&self, verbose: bool) -> impl Iterator<Item = PathBuf> {
         WalkDir::new(&self.path)
             .into_iter()
             .filter_entry(|entry| !is_hidden(entry))
@@ -72,7 +75,7 @@ impl Directory {
     ///
     /// Hidden directories and files (starting with a dot `.`) are ignored,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_full_paths(&self, verbose: bool) -> impl Iterator<Item=PathBuf> {
+    pub fn iter_full_paths(&self, verbose: bool) -> impl Iterator<Item = PathBuf> {
         self.iter_relative_paths(verbose)
             .filter_map(|path| path.canonicalize().ok())
     }
@@ -82,7 +85,8 @@ impl Directory {
     ///
     /// The directory entries are filtered by the `is_ignored` function,
     /// and entries that cause errors are skipped printing an error message.
-    pub fn iter_repo_paths(&self, verbose: bool) -> impl Iterator<Item=PathBuf> + '_ {
+    #[allow(dead_code)]
+    pub fn iter_repo_paths(&self, verbose: bool) -> impl Iterator<Item = PathBuf> + '_ {
         self.iter_relative_paths(verbose)
             .filter_map(|path| get_relative_path(&path, &self.path).ok())
     }

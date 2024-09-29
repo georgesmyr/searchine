@@ -1,28 +1,29 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{Receiver, sync_channel};
-use std::thread::{JoinHandle, spawn};
+use std::sync::mpsc::{sync_channel, Receiver};
+use std::thread::{spawn, JoinHandle};
 
 use anyhow::Context;
 
+use documents::{Document, DocumentId};
 use index::collection::*;
 use index::doc::freq::DocumentFrequencyIndex;
 use index::inverted::freq::FrequencyIndex;
-use loadocs::document::*;
-use tokenize::Tokenizer;
+use tokenize::{Token, Tokenizer};
 
 use crate::config::{CHANNEL_BOUND, INDEX_FILENAME, VOCABULARY_FILENAME};
 use crate::fs::Directory;
 
-type Tokens = (u32, Vec<u32>);
+type TokenizedDocument = (DocumentId, Vec<Token>);
 
-/// Part of a pipeline that loads documents.
+/// Part of a pipeline that loads documents. Each document in the collection is loaded
+/// and sent over a channel for tokenizing.
 fn load_docs<I>(
     paths: I,
     collection: Collection,
 ) -> (Receiver<Document>, JoinHandle<anyhow::Result<()>>)
 where
-    I: IntoIterator<Item=PathBuf> + Send + 'static,
+    I: IntoIterator<Item = PathBuf> + Send + 'static,
 {
     let (sender, receiver) = sync_channel(CHANNEL_BOUND);
     let handle = spawn(move || {
@@ -44,9 +45,15 @@ where
     (receiver, handle)
 }
 
+/// Part of a pipeline that tokenizes the contents of a document. Each received
+/// document is broken into tokens. The document ID and the stream of tokens are
+/// sent over a channel to a thread that indexes the documents.
 fn tokenize_content(
     document_receiver: Receiver<Document>,
-) -> (Receiver<Tokens>, JoinHandle<anyhow::Result<Tokenizer>>) {
+) -> (
+    Receiver<TokenizedDocument>,
+    JoinHandle<anyhow::Result<Tokenizer>>,
+) {
     let (sender, receiver) = sync_channel(CHANNEL_BOUND);
     let mut tokenizer = Tokenizer::default();
     let handle = spawn(move || {
@@ -64,8 +71,12 @@ fn tokenize_content(
     (receiver, handle)
 }
 
+/// Part of a pipeline that creates an index for each document. The received
+/// pair of document ID and token stream are turned into an index. The resulting
+/// document indices are sent over a channel and joint in the main thread that
+/// merges them into an overall index.
 fn index_documents(
-    tokens_receiver: Receiver<(u32, Vec<u32>)>,
+    tokens_receiver: Receiver<(u32, Vec<Token>)>,
 ) -> (
     Receiver<DocumentFrequencyIndex>,
     JoinHandle<anyhow::Result<()>>,
@@ -85,6 +96,7 @@ fn index_documents(
     (receiver, handle)
 }
 
+/// Indexes a directory of documents with a pipeline.
 pub fn invoke_par(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<()> {
     // Get all paths
     let repo_dir = repo_dir.as_ref();
@@ -94,7 +106,7 @@ pub fn invoke_par(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<(
     let dir = Directory::new(dir_path)?;
     let dir = dir.iter_full_paths(verbose).collect::<BTreeSet<_>>();
 
-    // // This is indexing collection from the scratch?
+    // This is indexing collection from the scratch?
     let collection = Collection::from_paths(dir.clone())?;
 
     let (doc_receiver, h1) = load_docs(dir, collection);
@@ -111,11 +123,11 @@ pub fn invoke_par(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<(
 
     r1?;
     let tokenizer = r2?;
-    tokenizer.to_file(repo_dir.join(VOCABULARY_FILENAME))?;
+    tokenizer.into_file(repo_dir.join(VOCABULARY_FILENAME))?;
     r3?;
 
     // Build index and store it to file.
-    index.write_to_file(repo_dir.join(INDEX_FILENAME))?;
+    index.into_file(repo_dir.join(INDEX_FILENAME))?;
     let emoji = String::from_utf8(vec![0xF0, 0x9F, 0x93, 0x8B]).unwrap_or_default();
     println_bold!("{emoji} Created index for: {}", dir_path.display());
 

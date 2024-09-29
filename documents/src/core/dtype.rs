@@ -15,7 +15,7 @@ impl DocumentType {
     ///
     /// ```no_run
     /// use std::ffi::OsStr;
-    /// use loadocs::DocumentType;
+    /// use documents::DocumentType;
     ///
     /// let ext = OsStr::new("txt");
     /// let file_type = DocumentType::from_extension(ext);
@@ -36,7 +36,7 @@ impl DocumentType {
     ///
     /// ```no_run
     /// use std::path::Path;
-    /// use loadocs::DocumentType;
+    /// use documents::DocumentType;
     ///
     /// let path = Path::new("file.txt");
     /// let file_type = DocumentType::from_path(path);

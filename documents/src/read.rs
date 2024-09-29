@@ -1,14 +1,11 @@
-pub mod document;
-pub mod dtype;
-
 use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
-use xml::reader::{EventReader, XmlEvent};
+use xml::reader::XmlEvent;
+use xml::EventReader;
 
-pub use crate::dtype::DocumentType;
-
+use crate::core::dtype::DocumentType;
 
 /// Reads the contents of a file and returns it as a string.
 ///
@@ -64,4 +61,3 @@ fn read_text_file(path: impl AsRef<Path>) -> std::io::Result<String> {
     reader.read_to_string(&mut string).ok();
     Ok(string)
 }
-

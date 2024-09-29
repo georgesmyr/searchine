@@ -5,8 +5,9 @@ edition = "2021"
 
 [dependencies]
 index = { path = "../index" }
-loadocs = { path = "../loadocs" }
+documents = { path = "../documents" }
 tokenize = { path = "../tokenize" }
+query = { path = "../query" }
 clap = { version = "4.5.11", features = ["derive"] }
 tabwriter = { version = "1.4.0" }
 rayon = "1.10.0"

@@ -1,13 +1,15 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::Context;
 
+use crate::core::metadata::{DocumentMetadata, DocumentMetadataBuilder, DocumentSource};
 use crate::read_to_string;
+use crate::DocumentId;
 
 /// Structure that represents a document. Document in this
 /// case is any part of ++++++
 pub struct Document {
-    doc_id: u32,
+    doc_id: DocumentId,
     page_content: String,
     metadata: DocumentMetadata,
 }
@@ -21,16 +23,22 @@ impl Document {
     /// - `doc_id`: Document ID.
     /// - `page_content`: Content of the document.
     /// - `metadata`: Metadata for the document, e.g. source, source type, etc.
-    pub fn new(doc_id: u32, page_content: String, metadata: DocumentMetadata) -> Self {
-        Self { doc_id, page_content, metadata }
+    pub fn new(doc_id: DocumentId, page_content: String, metadata: DocumentMetadata) -> Self {
+        Self {
+            doc_id,
+            page_content,
+            metadata,
+        }
     }
 
     /// Loads a document from file.
-    pub fn from_file(doc_id: u32, path: impl AsRef<Path>) -> anyhow::Result<Self> {
+    pub fn from_file(doc_id: DocumentId, path: impl AsRef<Path>) -> anyhow::Result<Self> {
         let path = path.as_ref().to_path_buf();
-        let content = read_to_string(&path)
-            .context(format!("Failed to read file {}", path.display()))?;
-        let metadata = DocumentMetadata::new(DocumentSource::File(path));
+        let content =
+            read_to_string(&path).context(format!("Failed to read file {}", path.display()))?;
+        let metadata = DocumentMetadataBuilder::new()
+            .with_source(DocumentSource::File(path))
+            .build();
         Ok(Document::new(doc_id, content, metadata))
     }
 
@@ -44,22 +52,3 @@ impl Document {
         &self.page_content
     }
 }
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum DocumentSource {
-    File(PathBuf),
-}
-
-/// Structure that stores metadata for a document.
-/// The metadata could be the document source, the source
-/// type, etc.
-pub struct DocumentMetadata {
-    source: DocumentSource,
-}
-
-impl DocumentMetadata {
-    pub fn new(source: DocumentSource) -> Self {
-        DocumentMetadata { source }
-    }
-}
-
