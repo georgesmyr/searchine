@@ -1,9 +1,5 @@
-use std::io;
-use std::path::Path;
-
 use rust_stemmers::{Algorithm, Stemmer};
 
-use crate::encode::Encoder;
 use crate::pre::PreTokenizer;
 use crate::Token;
 
@@ -11,7 +7,6 @@ use crate::Token;
 pub struct Tokenizer {
     pre_tokenizer: PreTokenizer,
     stemmer: Stemmer,
-    encoder: Encoder,
 }
 
 impl Default for Tokenizer {
@@ -21,7 +16,6 @@ impl Default for Tokenizer {
         Self {
             pre_tokenizer: PreTokenizer::new(),
             stemmer: Stemmer::create(Algorithm::English),
-            encoder: Encoder::default(),
         }
     }
 }
@@ -40,23 +34,6 @@ impl Tokenizer {
                 stem
             })
             .collect::<Vec<_>>()
-    }
-
-    /// Writes the tokenizer to files at specified path.
-    ///
-    /// What is written specifically is the encoder's vocabulary.
-    pub fn into_file(self, path: impl AsRef<Path>) -> io::Result<()> {
-        self.encoder.into_file(path)
-    }
-
-    /// Creates a tokenizer from file at specified path.
-    pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
-        let encoder = Encoder::from_file(path)?;
-        Ok(Self {
-            pre_tokenizer: PreTokenizer::new(),
-            stemmer: Stemmer::create(Algorithm::English),
-            encoder,
-        })
     }
 }
 

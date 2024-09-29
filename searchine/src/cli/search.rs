@@ -8,14 +8,14 @@ use index::score::*;
 use query::Query;
 use tokenize::Tokenizer;
 
-use crate::config::{COLLECTION_FILENAME, INDEX_FILENAME, VOCABULARY_FILENAME};
+use crate::config::{COLLECTION_FILENAME, INDEX_FILENAME};
 
 /// Search `top_n` most relevant documents to the free text `query`.
 pub fn invoke(repo_dir: impl AsRef<Path>, query: &str, top_n: u32) -> anyhow::Result<()> {
     let repo_dir = repo_dir.as_ref();
 
     // Instantiate tokenizer.
-    let mut tokenizer = Tokenizer::from_file(repo_dir.join(VOCABULARY_FILENAME))?;
+    let mut tokenizer = Tokenizer::default();
     // Tokenize the query.
     let query_tokens = tokenizer.tokenize(query);
     let query = Query::from(query_tokens);

@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{sync_channel, Receiver};
-use std::thread::{spawn, JoinHandle};
+use std::sync::mpsc::{Receiver, sync_channel};
+use std::thread::{JoinHandle, spawn};
 
 use anyhow::Context;
 
@@ -11,7 +11,7 @@ use index::doc::freq::DocumentFrequencyIndex;
 use index::inverted::freq::FrequencyIndex;
 use tokenize::{Token, Tokenizer};
 
-use crate::config::{CHANNEL_BOUND, INDEX_FILENAME, VOCABULARY_FILENAME};
+use crate::config::{CHANNEL_BOUND, INDEX_FILENAME};
 use crate::fs::Directory;
 
 type TokenizedDocument = (DocumentId, Vec<Token>);
@@ -23,7 +23,7 @@ fn load_docs<I>(
     collection: Collection,
 ) -> (Receiver<Document>, JoinHandle<anyhow::Result<()>>)
 where
-    I: IntoIterator<Item = PathBuf> + Send + 'static,
+    I: IntoIterator<Item=PathBuf> + Send + 'static,
 {
     let (sender, receiver) = sync_channel(CHANNEL_BOUND);
     let handle = spawn(move || {
@@ -52,7 +52,7 @@ fn tokenize_content(
     document_receiver: Receiver<Document>,
 ) -> (
     Receiver<TokenizedDocument>,
-    JoinHandle<anyhow::Result<Tokenizer>>,
+    JoinHandle<anyhow::Result<()>>,
 ) {
     let (sender, receiver) = sync_channel(CHANNEL_BOUND);
     let mut tokenizer = Tokenizer::default();
@@ -66,7 +66,7 @@ fn tokenize_content(
                 eprintln!("Failed to tokenize document {}", document.doc_id());
             }
         }
-        Ok(tokenizer)
+        Ok(())
     });
     (receiver, handle)
 }
@@ -109,22 +109,17 @@ pub fn invoke_par(repo_dir: impl AsRef<Path>, verbose: bool) -> anyhow::Result<(
     // This is indexing collection from the scratch?
     let collection = Collection::from_paths(dir.clone())?;
 
-    let (doc_receiver, h1) = load_docs(dir, collection);
-    let (token_receiver, h2) = tokenize_content(doc_receiver);
-    let (doc_index_receiver, h3) = index_documents(token_receiver);
+    let (doc_rec, h1) = load_docs(dir, collection);
+    let (token_rec, h2) = tokenize_content(doc_rec);
+    let (doc_index_rec, h3) = index_documents(token_rec);
     let mut index = FrequencyIndex::new();
-    for doc_index in doc_index_receiver {
+    for doc_index in doc_index_rec {
         index.index(doc_index);
     }
 
-    let r1 = h1.join().unwrap();
-    let r2 = h2.join().unwrap();
-    let r3 = h3.join().unwrap();
-
-    r1?;
-    let tokenizer = r2?;
-    tokenizer.into_file(repo_dir.join(VOCABULARY_FILENAME))?;
-    r3?;
+    let _r1 = h1.join().unwrap()?;
+    let _r2 = h2.join().unwrap()?;
+    let _r3 = h3.join().unwrap()?;
 
     // Build index and store it to file.
     index.into_file(repo_dir.join(INDEX_FILENAME))?;
